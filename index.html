@@ -10,7 +10,7 @@
         :root {
             --purple: #9c27b0;
             --light-purple: #f3e5f5;
-            --pink: #fce4ec;
+            --pink: #ff6b9d;
             --bg-gray: #f2f2f7;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -125,11 +125,20 @@
         .notes-editor { width: 100%; height: 110px; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 10px; font-size: 13px; resize: none; outline: none; background: white; line-height: 1.4; }
         .diary-speech-box { background: white; padding: 12px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: #444; border: 1px solid rgba(0,0,0,0.02); min-height: 50px; }
 
+        /* 历史复盘日志滚动槽 */
+        .history-log-item { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed rgba(0,0,0,0.05); }
+
+        /* 商店调色：可兑换按钮改成吸睛粉色 */
         .shop-card { background: rgba(255,255,255,0.6); padding: 12px; border-radius: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.2); }
         .shop-item-info h4 { margin: 0; font-size: 14px; color: #1c1c1e; font-weight: 700; }
         .shop-item-info p { margin: 2px 0 0 0; font-size: 11px; color: #777; }
-        .btn-exchange { background: var(--purple); color: white; border: none; padding: 6px 14px; border-radius: 10px; font-size: 12px; font-weight: bold; transition: all 0.2s ease; }
-        .btn-exchange:disabled { background: #d1d1d6; color: #aeaeae; }
+        
+        .btn-exchange { 
+            background: var(--pink); color: white; border: none; padding: 6px 14px; border-radius: 10px; 
+            font-size: 12px; font-weight: bold; transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(255, 107, 157, 0.2);
+        }
+        .btn-exchange:disabled { background: #d1d1d6; color: #aeaeae; box-shadow: none; }
 
         /* iOS 底部模糊导航 */
         .tab-bar {
@@ -152,7 +161,6 @@
 </head>
 <body>
 
-    <!-- 全局顶部 -->
     <div class="app-header">
         <div class="app-title">
             <h1>NAong Focus</h1>
@@ -161,7 +169,6 @@
         <div class="global-balance">🍦 <span id="global-icecream">10.0</span></div>
     </div>
 
-    <!-- ==================== TAB 1: 专注主页面 ==================== -->
     <div id="view-focus" class="tab-view active">
         <div class="pet-panel-huge">
             <div class="pet-avatar-box">
@@ -180,7 +187,6 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 2: 日志数据页面 ==================== -->
     <div id="view-stats" class="tab-view">
         <div class="dashboard-grid">
             <div class="stat-card">
@@ -199,10 +205,17 @@
 
         <div class="card-box">
             <div class="section-title" style="display:flex; justify-content:space-between;">
-                <span>📝 备考复盘日志 (<span id="review-status">缺复盘</span>)</span>
-                <span onclick="clearDayData()" style="color:#e53935; cursor:pointer;">🧼 清空今天</span>
+                <span>📝 今日备考复盘日志 (<span id="review-status">缺复盘</span>)</span>
+                <span onclick="clearDayData()" style="color:#e53935; cursor:pointer;">🧼 清空今天数值</span>
             </div>
-            <textarea id="notes-area" class="notes-editor" placeholder="在这里记录下今天沉甸甸的努力吧……&#10;&#10;✍️ 比如：&#10;1. 英语阅读真题完成了 2 篇，错题已分析。&#10;2. 专业课基础逻辑框架构建完毕。" oninput="saveNotes(this.value)"></textarea>
+            <textarea id="notes-area" class="notes-editor" placeholder="在这里记录下今天沉甸甸的努力吧……&#10;&#10;✍4 比如：&#10;1. 英语阅读真题完成了 2 篇，错题已分析。&#10;2. 专业课基础逻辑框架构建完毕。" oninput="saveNotes(this.value)"></textarea>
+        </div>
+
+        <button id="toggle-history-btn" style="width:100%; background:rgba(255,255,255,0.45); backdrop-filter:blur(5px); border:1px dashed var(--purple); color:var(--purple); padding:10px; border-radius:12px; font-size:12px; font-weight:bold; margin-bottom:10px; outline:none;" onclick="toggleHistory()">📅 查看历史日志档案</button>
+        
+        <div class="card-box" id="history-box" style="display:none;">
+            <div class="section-title">📂 历史复盘时间胶囊 (不含今日)</div>
+            <div id="history-list" style="max-height: 150px; overflow-y: auto; font-size: 12px; color: #555; line-height: 1.6;"></div>
         </div>
 
         <div class="card-box">
@@ -211,16 +224,15 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 3: 心愿商店页面 ==================== -->
     <div id="view-shop" class="tab-view">
         <div class="section-title" style="color: #e53935;">⚠️ 紧急赎身包 (用于解除 NAong 锁机离家出走状态)</div>
         <div class="shop-card" style="border: 1px solid rgba(229,57,53,0.2);">
             <div class="shop-item-info"><h4>🥖 充饥大面包 [秒解锁]</h4><p>破财免灾！扣除 3 小时高浓度复习成果直接重获自由</p></div>
-            <button class="btn-exchange" style="background:#e53935;" onclick="buyEmergency(15)">支付 15 🍦</button>
+            <button class="btn-exchange" style="background:#e53935; box-shadow:0 2px 6px rgba(229,57,53,0.2);" onclick="buyEmergency(15)">支付 15 🍦</button>
         </div>
         <div class="shop-card" style="border: 1px solid rgba(229,57,53,0.2);">
             <div class="shop-item-info"><h4>🍕 豪华大披萨 [秒解锁]</h4><p>血亏赎身！瞬间哄好离家出走的 NAong</p></div>
-            <button class="btn-exchange" style="background:#e53935;" onclick="buyEmergency(30)">支付 30 🍦</button>
+            <button class="btn-exchange" style="background:#e53935; box-shadow:0 2px 6px rgba(229,57,53,0.2);" onclick="buyEmergency(30)">支付 30 🍦</button>
         </div>
         
         <div class="section-title">🎁 考研自律心愿单 (苦修版经济调控)</div>
@@ -242,7 +254,6 @@
         </div>
     </div>
 
-    <!-- 底部导航 -->
     <div class="tab-bar">
         <button class="tab-item active" onclick="switchTab('view-focus', this)"><span>🐾</span>专属陪伴</button>
         <button class="tab-item" onclick="switchTab('view-stats', this)"><span>📊</span>自习日志</button>
@@ -250,6 +261,11 @@
     </div>
 
     <script>
+        function getTodayStr() {
+            let d = new Date();
+            return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+        }
+
         let state = {
             iceCreams: parseFloat(localStorage.getItem('iceCreams')) || 10.0,
             totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
@@ -257,7 +273,8 @@
             iceCreamsEarnedToday: parseFloat(localStorage.getItem('iceCreamsEarnedToday')) || 0.0,
             isLocked: localStorage.getItem('isLocked') === 'true',
             currentStatus: localStorage.getItem('currentStatus') || 'defaultState',
-            userNotes: localStorage.getItem('userNotes') || '',
+            lastDate: localStorage.getItem('lastDate') || getTodayStr(),
+            dailyLogs: {}, 
             countMilkTea: parseInt(localStorage.getItem('countMilkTea')) || 0,
             countChicken: parseInt(localStorage.getItem('countChicken')) || 0,
             countToy: parseInt(localStorage.getItem('countToy')) || 0,
@@ -266,6 +283,13 @@
             rewarded8H: localStorage.getItem('rewarded8H') === 'true',
             rewarded10H: localStorage.getItem('rewarded10H') === 'true'
         };
+
+        // 安全解析对象级本地储存
+        try {
+            state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {};
+        } catch(e) {
+            state.dailyLogs = {};
+        }
 
         const NAongStates = {
             defaultState: { text: "📚 准备好开始今天的考研复习了吗？", img: "https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" },
@@ -284,14 +308,36 @@
         let lastBackgroundTime = null;
 
         function init() {
+            checkNewDay();
             updateUI();
             calculateCountdown();
             updateDiaryView();
             document.addEventListener("visibilitychange", handleVisibilityChange);
         }
 
+        // 强力防错存函数
         function saveState() {
-            Object.keys(state).forEach(key => localStorage.setItem(key, state[key]));
+            Object.keys(state).forEach(key => {
+                if (typeof state[key] === 'object' && state[key] !== null) {
+                    localStorage.setItem(key, JSON.stringify(state[key]));
+                } else {
+                    localStorage.setItem(key, state[key]);
+                }
+            });
+        }
+
+        // 核心优化：检测到跨天，系统会自动保存历史数据，并初始化属于新一天的全新白纸！
+        function checkNewDay() {
+            let today = getTodayStr();
+            if (state.lastDate !== today) {
+                state.todayFocusMinutes = 0;
+                state.iceCreamsEarnedToday = 0;
+                state.rewarded6H = false;
+                state.rewarded8H = false;
+                state.rewarded10H = false;
+                state.lastDate = today;
+                saveState();
+            }
         }
 
         function switchTab(tabId, element) {
@@ -308,15 +354,19 @@
             document.getElementById('global-icecream').innerText = Number(state.iceCreams).toFixed(1);
             document.getElementById('today-time').innerText = state.todayFocusMinutes.toFixed(1) + " 分钟";
             document.getElementById('total-time').innerText = state.totalFocusMinutes.toFixed(1) + " 分钟";
-            document.getElementById('notes-area').value = state.userNotes;
+            
+            // 按日期读取当天日记
+            let today = getTodayStr();
+            let todayNotes = state.dailyLogs[today] || '';
+            document.getElementById('notes-area').value = todayNotes;
             
             document.getElementById('cnt-m').innerText = state.countMilkTea;
             document.getElementById('cnt-c').innerText = state.countChicken;
             document.getElementById('cnt-t').innerText = state.countToy;
             document.getElementById('cnt-cl').innerText = state.countClothes;
 
-            document.getElementById('review-status').innerText = state.userNotes.trim() ? "已复盘" : "缺复盘";
-            document.getElementById('review-status').style.color = state.userNotes.trim() ? "#4caf50" : "#ff9800";
+            document.getElementById('review-status').innerText = todayNotes.trim() ? "已复盘" : "缺复盘";
+            document.getElementById('review-status').style.color = todayNotes.trim() ? "#4caf50" : "#ff9800";
             
             let cur = NAongStates[state.currentStatus];
             document.getElementById('pet-img').src = cur.img;
@@ -352,7 +402,7 @@
             }
             document.getElementById('milestone-tip').innerText = tip;
 
-            // 兑换按钮的禁用控制
+            // 按钮禁用机制与粉色逻辑
             let costs = [15, 30, 200, 500, 1000, 2500];
             document.querySelectorAll('#view-shop .btn-exchange').forEach((btn, idx) => {
                 btn.disabled = state.iceCreams < costs[idx];
@@ -373,6 +423,7 @@
         }
 
         function startFocus() {
+            checkNewDay();
             isRunning = true;
             timeRemaining = currentFocusDuration * 60;
             if(!state.isLocked) { state.currentStatus = 'studying'; }
@@ -397,14 +448,12 @@
             document.getElementById('cheat-indicator').style.display = 'none';
             
             if (state.isLocked) {
-                // 肉身面壁5分钟：付出时间代价，经济微扣 1 🍦
                 state.isLocked = false;
                 state.currentStatus = 'defaultState';
                 state.iceCreams = Math.max(0, state.iceCreams - 1.0); 
                 alert("🧘‍♂️ 5分钟面壁完成！扣除 1.0 🍦。你用宝贵的时间资产换回了自由！\n\n🔓 专注功能已重新解锁。");
             } else {
                 state.currentStatus = 'happy';
-                // 1小时 = 5个冰激凌基准
                 let earned = parseFloat(((currentFocusDuration / 60) * 5).toFixed(2));
                 state.iceCreams += earned;
                 state.iceCreamsEarnedToday += earned;
@@ -422,7 +471,6 @@
             clearInterval(timerInterval);
             isRunning = false;
             document.getElementById('cheat-indicator').style.display = 'none';
-            // 强行开溜重罚扣除 5.0 🍦，直接蒸发 1 小时的成果并锁机
             state.iceCreams = Math.max(0, state.iceCreams - 5.0);
             state.isLocked = true;
             state.currentStatus = 'sleeping';
@@ -439,7 +487,6 @@
                 let elapsed = (new Date() - lastBackgroundTime) / 1000;
                 lastBackgroundTime = null;
                 
-                // 苦修版分心惩罚
                 if (elapsed < 10) {
                     state.currentStatus = 'puzzled'; state.iceCreams = Math.max(0, state.iceCreams - 0.2);
                 } else if (elapsed < 60) {
@@ -463,7 +510,6 @@
         }
 
         function checkMilestone() {
-            // 苦修版降低里程碑暴击
             if (state.todayFocusMinutes >= 360 && !state.rewarded6H) {
                 state.rewarded6H = true; state.iceCreams += 2.0; state.iceCreamsEarnedToday += 2.0;
                 alert("🎉 里程碑奖励：今日复习已满 6 小时！额外奖励 2.0 个 🍦！");
@@ -491,17 +537,60 @@
             saveState(); updateUI();
         }
 
+        // 日志精细化存储：绑定当前的 YYYY-MM-DD
         function saveNotes(val) { 
-            state.userNotes = val; saveState(); 
+            let today = getTodayStr();
+            state.dailyLogs[today] = val; 
+            saveState(); 
             document.getElementById('review-status').innerText = val.trim() ? "已复盘" : "缺复盘"; 
             document.getElementById('review-status').style.color = val.trim() ? "#4caf50" : "#ff9800";
         }
 
+        function toggleHistory() {
+            let box = document.getElementById('history-box');
+            let btn = document.getElementById('toggle-history-btn');
+            if (box.style.display === 'none') {
+                box.style.display = 'block';
+                btn.innerText = '🙈 收起历史日志档案';
+                renderHistory();
+            } else {
+                box.style.display = 'none';
+                btn.innerText = '📅 查看历史日志档案';
+            }
+        }
+
+        // 渲染历史记录数据库里的内容（不包含今天）
+        function renderHistory() {
+            let listEl = document.getElementById('history-list');
+            listEl.innerHTML = '';
+            let keys = Object.keys(state.dailyLogs).sort().reverse(); 
+            let today = getTodayStr();
+            let count = 0;
+
+            keys.forEach(k => {
+                if (k === today) return; 
+                if (state.dailyLogs[k] && state.dailyLogs[k].trim()) {
+                    count++;
+                    let item = document.createElement('div');
+                    item.className = 'history-log-item';
+                    item.innerHTML = `<strong style="color:var(--purple);">${k}</strong>:<br><span style="white-space:pre-wrap;">${state.dailyLogs[k]}</span>`;
+                    listEl.appendChild(item);
+                }
+            });
+
+            if (count === 0) {
+                listEl.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">暂无历史复盘档案，继续加油呀！</div>';
+            }
+        }
+
         function clearDayData() {
-            if(confirm("确定要清空今日专注数据与自习日志，开启新一天的复习吗？")) {
-                state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0; state.userNotes = "";
+            if(confirm("确定要清空今日的专注时间与达标状态吗？（历史日志档案不会丢失）")) {
+                let today = getTodayStr();
+                state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0; 
+                state.dailyLogs[today] = "";
                 state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
                 saveState(); updateUI(); updateDiaryView();
+                if (document.getElementById('history-box').style.display !== 'none') renderHistory();
             }
         }
 
