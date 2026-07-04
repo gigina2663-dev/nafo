@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NAong Focus</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --purple: #9c27b0;
+            --light-purple: #f3e5f5;
+            --pink: #fce4ec;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #e8e0ff, #ffe2ec);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+            padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)) 16px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .title-area h1 { margin: 0; font-size: 24px; color: var(--purple); font-weight: 800; tracking: tracking-tight; }
+        .countdown-tag {
+            display: inline-block;
+            background: rgba(229, 57, 53, 0.1); color: #e53935;
+            font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 8px; margin-top: 5px;
+        }
+        .shop-trigger {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 6px 14px; border-radius: 16px;
+            font-weight: bold; color: var(--purple); border: none; font-size: 14px; display: flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(156, 39, 176, 0.05);
+        }
+        .action-btns { display: flex; gap: 10px; margin-bottom: 12px; }
+        .action-btns button {
+            flex: 1; border: none; padding: 12px; border-radius: 14px; font-weight: bold; font-size: 13px;
+            transition: all 0.2s ease;
+        }
+        .action-btns button:active { transform: scale(0.97); opacity: 0.8; }
+        .btn-notes { background: rgba(33, 150, 243, 0.12); color: #1e88e5; }
+        .btn-diary { background: rgba(156, 39, 176, 0.12); color: var(--purple); }
+        
+        .dashboard { background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 18px; padding: 14px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.4); }
+        .stats-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .stat-card { flex: 1; background: rgba(255, 255, 255, 0.65); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); }
+        .stat-card div:first-child { font-size: 11px; color: #666; font-weight: 600; }
+        .stat-card div:last-child { font-size: 16px; font-weight: bold; color: var(--purple); margin-top: 2px; }
+        .tip-row { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--purple); padding: 0 4px; }
+        
+        /* 宠物面板全面升级为 iOS squircle 看板风格 */
+        .pet-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px; padding: 20px; text-align: center; margin-bottom: 12px; flex: 1;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 20px rgba(156, 39, 176, 0.03);
+        }
+        .pet-avatar-box { 
+            width: 110px; height: 110px; 
+            border-radius: 24px; 
+            overflow: hidden; 
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06); 
+            background: #fff;
+            border: 2px solid rgba(255,255,255,0.8);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pet-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        .pet-text { font-size: 14px; font-weight: 600; color: #444; min-height: 44px; display: flex; align-items: center; padding: 0 8px; line-height: 1.5; }
+        
+        .timer-panel { background: rgba(255, 255, 255, 0.45); border-radius: 18px; padding: 14px; text-align: center; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.3); }
+        .timer-display { font-size: 44px; font-weight: 700; font-family: -apple-system, BlinkMacSystemFont, monospace; color: var(--purple); margin-bottom: 4px; tracking: -1px; }
+        .cheat-warning { font-size: 11px; color: #e53935; font-weight: bold; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        .slider { width: 100%; margin: 12px 0; accent-color: var(--purple); }
+        
+        .main-btn {
+            width: 100%; height: 52px; border-radius: 26px; border: none; color: white; font-size: 16px; font-weight: bold;
+            background: var(--purple); box-shadow: 0 6px 16px rgba(156, 39, 176, 0.25);
+            transition: all 0.2s ease;
+        }
+        .main-btn:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(156, 39, 176, 0.15); }
+        .main-btn.abort { background: #e53935; box-shadow: 0 6px 16px rgba(229, 57, 53, 0.25); }
+        
+        .runaway-btns { display: flex; gap: 10px; width: 100%; }
+        .btn-runaway-shop { background: var(--purple); color: white; flex: 1; height: 48px; border: none; border-radius: 24px; font-weight: bold; box-shadow: 0 4px 12px rgba(156, 39, 176, 0.2); }
+        .btn-runaway-med { background: rgba(156, 39, 176, 0.12); color: var(--purple); flex: 1; height: 48px; border: none; border-radius: 24px; font-weight: bold; }
+
+        /* 全局卡片式轻量弹窗 */
+        .sheet {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f2f2f7;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 100; padding: calc(20px + env(safe-area-inset-top)) 16px 20px 16px;
+            overflow-y: auto; display: flex; flex-direction: column;
+        }
+        .sheet.open { transform: translateY(0); }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e5e5ea; padding-bottom: 12px; }
+        .sheet-title { font-size: 19px; font-weight: 800; color: #1c1c1e; }
+        .sheet-close { color: var(--purple); font-weight: bold; background: none; border: none; font-size: 15px; }
+        
+        .shop-card { background: white; padding: 14px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0,0,0,0.03); }
+        .shop-item-info h4 { margin: 0; font-size: 15px; color: #1c1c1e; font-weight: 700; }
+        .shop-item-info p { margin: 4px 0 0 0; font-size: 12px; color: #8e8e93; }
+        .btn-exchange { background: var(--purple); color: white; border: none; padding: 7px 14px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+        .btn-exchange:disabled { background: #d1d1d6; color: #aeaeae; }
+        .section-title { font-size: 12px; font-weight: 700; color: #8e8e93; margin: 16px 0 8px 4px; text-transform: uppercase; tracking: 0.5px; }
+        
+        .notes-editor { width: 100%; flex: 1; border: 1px solid #e5e5ea; border-radius: 16px; padding: 14px; font-size: 15px; resize: none; outline: none; background: white; line-height: 1.6; font-family: -apple-system, sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title-area">
+            <h1>NAong Focus</h1>
+            <div id="countdown-day" class="countdown-tag">🎯 距离考研：计算中</div>
+        </div>
+        <button class="shop-trigger" onclick="openSheet('shop-sheet')">🍦 <span id="icecream-balance">10</span> 🛒</button>
+    </div>
+
+    <div class="action-btns">
+        <button class="btn-notes" onclick="openNotes()">📝 备考复盘</button>
+        <button class="btn-diary" onclick="openDiary()">📖 NAong日记</button>
+    </div>
+
+    <div class="dashboard">
+        <div class="stats-row">
+            <div class="stat-card">
+                <div>☀️ 今日复习</div>
+                <div id="today-time">0.0 分钟</div>
+            </div>
+            <div class="stat-card">
+                <div>⏱️ 总累计</div>
+                <div id="total-time">0.0 分钟</div>
+            </div>
+        </div>
+        <div class="tip-row">
+            <span id="milestone-tip">🎯 距离今日6小时达标奖励还差: -- 分钟</span>
+            <span id="review-status" style="color: #ff9800;">✍️ 缺复盘</span>
+        </div>
+    </div>
+
+    <div class="pet-panel">
+        <div class="pet-avatar-box">
+            <img id="pet-img" class="pet-avatar-img" src="https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" alt="NAong">
+        </div>
+        <div id="pet-msg" class="pet-text">📚 准备好开始今天的考研复习了吗？</div>
+    </div>
+
+    <div class="timer-panel">
+        <div id="timer-text" class="timer-display">25 分钟</div>
+        <div id="cheat-indicator" class="cheat-warning" style="display:none;">⏳ 智能防作弊监控中...</div>
+        <input type="range" id="timer-slider" class="slider" min="5" max="120" step="5" value="25" oninput="updateSlider(this.value)">
+    </div>
+
+    <div id="button-zone">
+        <button id="action-btn" class="main-btn" onclick="handleMainAction()">开启锁机专注 (25分钟)</button>
+    </div>
+
+    <div id="shop-sheet" class="sheet">
+        <div class="sheet-header">
+            <span class="sheet-title">🍦 心愿商品兑换中心</span>
+            <button class="sheet-close" onclick="closeSheet('shop-sheet')">离开商店</button>
+        </div>
+        <div style="background: white; padding: 14px; border-radius: 16px; margin-bottom: 14px; text-align: center; color: var(--purple); font-weight: bold; border: 1px solid rgba(0,0,0,0.02);">
+            当前冰激凌余额: 🍦 <span id="shop-balance">10</span> 个
+        </div>
+        <div class="section-title">🩹 紧急救急包 (用于安抚离家出走的 NAong)</div>
+        <div class="shop-card">
+            <div class="shop-item-info"><h4>🥖 香脆大面包</h4><p>基础充饥，抚平离家出走状态</p></div>
+            <button class="btn-exchange" onclick="buyEmergency(5)">兑换 5 🍦</button>
+        </div>
+        <div class="shop-card">
+            <div class="shop-item-info"><h4>🍕 美味大披萨</h4><p>豪华安抚，瞬间哄好小宠物</p></div>
+            <button class="btn-exchange" onclick="buyEmergency(10)">兑换 10 🍦</button>
+        </div>
+        
+        <div class="section-title">🎁 考研高光心愿单 (自我慰劳的阶段性大奖)</div>
+        <div class="shop-card">
+            <div class="shop-item-info"><h4>🧋 买一杯喜欢的饮料</h4><p>多糖加冰！累计兑换: <span id="cnt-m">0</span> 次</p></div>
+            <button class="btn-exchange" onclick="buyWish('MilkTea', 40)">兑换 40 🍦</button>
+        </div>
+        <div class="shop-card">
+            <div class="shop-item-info"><h4>🍗 吃一顿喜欢的饭</h4><p>干饭人的快乐源泉！累计兑换: <span id="cnt-c">0</span> 次</p></div>
+            <button class="btn-exchange" onclick="buyWish('Chicken', 70)">兑换 70 🍦</button>
+        </div>
+        <div class="shop-card">
+            <div class="shop-item-info"><h4>🧸 喜欢的小玩意儿</h4><p>桌上的解压治愈常伴。累计兑换: <span id="cnt-t">0</span> 次</p></div>
+            <button class="btn-exchange" onclick="buyWish('Toy', 120)">兑换 120 🍦</button>
+        </div>
+        <div class="shop-card">
+            <div class="shop-item-info"><h4>👚 喜欢但舍不得买的大物件</h4><p>终极犒劳！购物车清空！累计兑换: <span id="cnt-cl">0</span> 次</p></div>
+            <button class="btn-exchange" onclick="buyWish('Clothes', 200)">兑换 200 🍦</button>
+        </div>
+    </div>
+
+    <div id="notes-sheet" class="sheet">
+        <div class="sheet-header">
+            <span class="sheet-title">📝 我的考研自习日志</span>
+            <button class="sheet-close" onclick="closeSheet('notes-sheet')">合上本子</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:12px;">
+            <span id="notes-time-tip" style="color:#1e88e5; font-weight:bold;">💡 今日已专注: 0 分钟</span>
+            <button onclick="clearDayData()" style="color:red; background:none; border:none; font-weight:bold;">🧼 开启新一天清空</button>
+        </div>
+        <textarea id="notes-area" class="notes-editor" placeholder="在这里记录下今天沉甸甸的努力吧……&#10;&#10;✍️ 比如：&#10;1. 英语阅读真题完成了 2 篇，错题已分析。&#10;2. 专业课高分子基础逻辑框架构建完毕。&#10;3. 政治复习了 1 单元。" oninput="saveNotes(this.value)"></textarea>
+    </div>
+
+    <div id="diary-sheet" class="sheet">
+        <div class="sheet-header">
+            <span id="diary-date" class="sheet-title">M月D日</span>
+            <button class="sheet-close" onclick="closeSheet('diary-sheet')">关闭日记</button>
+        </div>
+        <div class="section-title">📖 NAong 的观察日志</div>
+        <div class="shop-card" style="margin-bottom:6px;"><span>☀️ 今日专注</span><strong id="d-today" style="color:var(--purple)">0 分</strong></div>
+        <div class="shop-card" style="margin-bottom:6px;"><span>⏱️ 总累计</span><strong id="d-total" style="color:var(--purple)">0 分</strong></div>
+        <div class="shop-card" style="margin-bottom:12px;"><span>💰 今日收获</span><strong id="d-earn" style="color:var(--purple)">+0 🍦</strong></div>
+        <div class="section-title">NAong 悄悄话 ✍️</div>
+        <div id="diary-whisper" style="background:white; padding:16px; border-radius:16px; font-size:14px; line-height:1.6; color:#444; border: 1px solid rgba(0,0,0,0.02);"></div>
+    </div>
+
+    <script>
+        // 核心持久化状态
+        let state = {
+            iceCreams: parseInt(localStorage.getItem('iceCreams')) || 10,
+            totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
+            todayFocusMinutes: parseFloat(localStorage.getItem('todayFocusMinutes')) || 0.0,
+            iceCreamsEarnedToday: parseInt(localStorage.getItem('iceCreamsEarnedToday')) || 0,
+            isLocked: localStorage.getItem('isLocked') === 'true',
+            currentStatus: localStorage.getItem('currentStatus') || 'defaultState',
+            userNotes: localStorage.getItem('userNotes') || '',
+            countMilkTea: parseInt(localStorage.getItem('countMilkTea')) || 0,
+            countChicken: parseInt(localStorage.getItem('countChicken')) || 0,
+            countToy: parseInt(localStorage.getItem('countToy')) || 0,
+            countClothes: parseInt(localStorage.getItem('countClothes')) || 0,
+            rewarded6H: localStorage.getItem('rewarded6H') === 'true',
+            rewarded8H: localStorage.getItem('rewarded8H') === 'true',
+            rewarded10H: localStorage.getItem('rewarded10H') === 'true'
+        };
+
+        // 精准映射：彻底融合你的六套高清图床链接
+        const NAongStates = {
+            defaultState: { text: "📚 准备好开始今天的考研复习了吗？", img: "https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" },
+            studying: { text: "✍️ 专注的你真好看，我会一直陪着你。", img: "https://i.postimg.cc/prnckGFm/naong-studying.jpg" },
+            puzzled: { text: "🤔 你刚刚是不是切出去了？NAong 动摇了……", img: "https://i.postimg.cc/hjY3LWf9/naong-puzzled.jpg" },
+            angry: { text: "💢 警告：检测到你频繁退出 App！我要生气了！", img: "https://i.postimg.cc/C126GTzC/naong-angry.jpg" },
+            crying: { text: "😭 你竟然在专注期间跑去玩别的软件，我好伤心……", img: "https://i.postimg.cc/gJ7BVFnZ/naong-crying.jpg" },
+            sleeping: { text: "💤 彻底摆烂是吧？离家出走中，不想理你！", img: "https://i.postimg.cc/RFYb75N7/naong-sleeping.jpg" },
+            happy: { text: "🍦 太棒啦！完成了目标，这是奖励你的冰激凌！", img: "https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" }
+        };
+
+        let timerInterval = null;
+        let isRunning = false;
+        let timeRemaining = 0;
+        let currentFocusDuration = 25;
+        let lastBackgroundTime = null;
+
+        // 初始化加载
+        function init() {
+            updateUI();
+            calculateCountdown();
+            
+            // 监听切后台防作弊
+            document.addEventListener("visibilitychange", handleVisibilityChange);
+        }
+
+        function saveState() {
+            Object.keys(state).forEach(key => localStorage.setItem(key, state[key]));
+        }
+
+        function updateUI() {
+            document.getElementById('icecream-balance').innerText = state.iceCreams;
+            document.getElementById('shop-balance').innerText = state.iceCreams;
+            document.getElementById('today-time').innerText = state.todayFocusMinutes.toFixed(1) + " 分钟";
+            document.getElementById('total-time').innerText = state.totalFocusMinutes.toFixed(1) + " 分钟";
+            document.getElementById('notes-time-tip').innerText = `💡 今日已专注: ${state.todayFocusMinutes.toFixed(1)} 分钟`;
+            document.getElementById('notes-area').value = state.userNotes;
+            
+            document.getElementById('cnt-m').innerText = state.countMilkTea;
+            document.getElementById('cnt-c').innerText = state.countChicken;
+            document.getElementById('cnt-t').innerText = state.countToy;
+            document.getElementById('cnt-cl').innerText = state.countClothes;
+
+            document.getElementById('review-status').innerText = state.userNotes.trim() ? "✅ 已复盘" : "✍️ 缺复盘";
+            document.getElementById('review-status').style.color = state.userNotes.trim() ? "#4caf50" : "#ff9800";
+            
+            // 头像与信息源切换为外链高清图片渲染
+            let cur = NAongStates[state.currentStatus];
+            document.getElementById('pet-img').src = cur.img;
+            document.getElementById('pet-msg').innerText = cur.text;
+
+            // 动态按钮区域渲染
+            let zone = document.getElementById('button-zone');
+            if (state.isLocked) {
+                zone.innerHTML = `<div class="runaway-btns">
+                    <button class="btn-runaway-shop" onclick="openSheet('shop-sheet')">🛒 去商铺买食物哄她</button>
+                    <button class="btn-runaway-med" onclick="startMeditation()">🧘‍♂️ 面壁思过 5 分钟</button>
+                </div>`;
+                document.getElementById('timer-slider').disabled = true;
+            } else {
+                document.getElementById('timer-slider').disabled = isRunning;
+                if (isRunning) {
+                    zone.innerHTML = `<button class="main-btn abort" onclick="abortFocus()">强行放弃 (扣除5个🍦)</button>`;
+                } else {
+                    zone.innerHTML = `<button class="main-btn" onclick="startFocus()">开启锁机专注 (${currentFocusDuration}分钟)</button>`;
+                }
+            }
+
+            // 阶段奖惩里程碑计算
+            let tip = "";
+            if (state.todayFocusMinutes < 360) {
+                tip = `🎯 距离今日 6小时 达标奖励还差: ${Math.ceil(360 - state.todayFocusMinutes)} 分钟`;
+            } else if (state.todayFocusMinutes < 480) {
+                tip = `🔥 已达 6H 奖！离 8小时 还差: ${Math.ceil(480 - state.todayFocusMinutes)} 分钟`;
+            } else if (state.todayFocusMinutes < 600) {
+                tip = `🚀 已达 8H 奖！离 10小时 终极战神还差: ${Math.ceil(600 - state.todayFocusMinutes)} 分钟`;
+            } else {
+                tip = `👑 今日已通关 10小时 终极魔鬼大奖！`;
+            }
+            document.getElementById('milestone-tip').innerText = tip;
+
+            // 联动资产动态禁用控制
+            document.querySelectorAll('.btn-exchange').forEach((btn, idx) => {
+                let costs = [5, 10, 40, 70, 120, 200];
+                btn.disabled = state.iceCreams < costs[idx];
+            });
+        }
+
+        function updateSlider(val) {
+            currentFocusDuration = parseInt(val);
+            document.getElementById('timer-text').innerText = val + " 分钟";
+            document.getElementById('action-btn').innerText = `开启锁机专注 (${val}分钟)`;
+        }
+
+        function handleMainAction() {
+            if(!isRunning && !state.isLocked) {
+                startFocus();
+            }
+        }
+
+        function startFocus() {
+            isRunning = true;
+            timeRemaining = currentFocusDuration * 60;
+            state.currentStatus = 'studying';
+            document.getElementById('cheat-indicator').style.display = 'block';
+            saveState();
+            updateUI();
+            
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    let mins = Math.floor(timeRemaining / 60);
+                    let secs = timeRemaining % 60;
+                    document.getElementById('timer-text').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                } else {
+                    completeFocus();
+                }
+            }, 1000);
+        }
+
+        function completeFocus() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('cheat-indicator').style.display = 'none';
+            
+            if (state.isLocked) {
+                state.isLocked = false;
+                state.currentStatus = 'defaultState';
+            } else {
+                state.currentStatus = 'happy';
+                state.iceCreams += currentFocusDuration;
+                state.iceCreamsEarnedToday += currentFocusDuration;
+                state.todayFocusMinutes += currentFocusDuration;
+                state.totalFocusMinutes += currentFocusDuration;
+                checkMilestone();
+            }
+            
+            document.getElementById('timer-slider').value = currentFocusDuration;
+            document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
+            saveState();
+            updateUI();
+        }
+
+        function abortFocus() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('cheat-indicator').style.display = 'none';
+            state.iceCreams = Math.max(0, state.iceCreams - 5);
+            state.isLocked = true;
+            state.currentStatus = 'sleeping';
+            document.getElementById('timer-slider').value = currentFocusDuration;
+            document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
+            saveState();
+            updateUI();
+        }
+
+        // 精准时间维度的情感惩罚与切屏侦测逻辑
+        function handleVisibilityChange() {
+            if (!isRunning || state.isLocked) return;
+            if (document.hidden) {
+                lastBackgroundTime = new Date();
+            } else if (lastBackgroundTime) {
+                let elapsed = (new Date() - lastBackgroundTime) / 1000;
+                lastBackgroundTime = null;
+                
+                if (elapsed < 10) {
+                    state.currentStatus = 'puzzled';
+                    state.iceCreams = Math.max(0, state.iceCreams - 1);
+                } else if (elapsed < 60) {
+                    state.currentStatus = 'angry';
+                    state.iceCreams = Math.max(0, state.iceCreams - 2);
+                } else if (elapsed < 300) {
+                    state.currentStatus = 'crying';
+                    state.iceCreams = Math.max(0, state.iceCreams - 5);
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    state.isLocked = true;
+                    state.currentStatus = 'sleeping';
+                    state.iceCreams = Math.max(0, state.iceCreams - 10);
+                    document.getElementById('cheat-indicator').style.display = 'none';
+                    document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
+                }
+                saveState();
+                updateUI();
+            }
+        }
+
+        function startMeditation() {
+            currentFocusDuration = 5;
+            startFocus();
+        }
+
+        function checkMilestone() {
+            if (state.todayFocusMinutes >= 360 && !state.rewarded6H) {
+                state.rewarded6H = true;
+                state.iceCreams += 30; state.iceCreamsEarnedToday += 30;
+                alert("🎉 里程碑大奖：今日复习已满 6 小时！额外斩获 30 个 🍦！");
+            }
+            if (state.todayFocusMinutes >= 480 && !state.rewarded8H) {
+                state.rewarded8H = true;
+                state.iceCreams += 50; state.iceCreamsEarnedToday += 50;
+                alert("🎉 里程碑大奖：太强了吧！今日复习已满 8 小时！额外斩获 50 个 🍦！");
+            }
+            if (state.todayFocusMinutes >= 600 && !state.rewarded10H) {
+                state.rewarded10H = true;
+                state.iceCreams += 100; state.iceCreamsEarnedToday += 100;
+                alert("👑 战神里程碑：跪了！今日自律已满 10 小时！额外狂揽 100 个 🍦！");
+            }
+        }
+
+        function buyEmergency(cost) {
+            state.iceCreams -= cost;
+            state.isLocked = false;
+            state.currentStatus = 'defaultState';
+            saveState();
+            updateUI();
+            closeSheet('shop-sheet');
+        }
+
+        function buyWish(type, cost) {
+            state.iceCreams -= cost;
+            state['count' + type]++;
+            saveState();
+            updateUI();
+        }
+
+        function openSheet(id) { document.getElementById(id).classList.add('open'); }
+        function closeSheet(id) { document.getElementById(id).classList.remove('open'); }
+        function openNotes() { openSheet('notes-sheet'); }
+        
+        function saveNotes(val) { 
+            state.userNotes = val; 
+            saveState(); 
+            document.getElementById('review-status').innerText = val.trim() ? "✅ 已复盘" : "✍️ 缺复盘"; 
+            document.getElementById('review-status').style.color = val.trim() ? "#4caf50" : "#ff9800";
+        }
+
+        function clearDayData() {
+            if(confirm("确定要清空今日专注时长与日记，开启新一天的复习吗？")) {
+                state.todayFocusMinutes = 0;
+                state.iceCreamsEarnedToday = 0;
+                state.userNotes = "";
+                state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
+                saveState(); updateUI(); closeSheet('notes-sheet');
+            }
+        }
+
+        function openDiary() {
+            let now = new Date();
+            document.getElementById('diary-date').innerText = `${now.getMonth()+1}月${now.getDate()}日`;
+            document.getElementById('d-today').innerText = state.todayFocusMinutes.toFixed(1) + " 分";
+            document.getElementById('d-total').innerText = state.totalFocusMinutes.toFixed(1) + " 分";
+            document.getElementById('d-earn').innerText = "+" + state.iceCreamsEarnedToday + " 🍦";
+
+            let txt = "";
+            if (state.todayFocusMinutes >= 360) {
+                txt = "🔥 天哪！她今天学习超过了 6 个小时以上！看着她坐在椅子上拼尽全力的背影，NAong 崇拜得眼睛里全是小星星！这么强的意志力，今年一定稳稳上岸！✨";
+            } else if (state.todayFocusMinutes >= 60 && state.iceCreamsEarnedToday > 0) {
+                txt = "今天真的好开心！她一整天都在非常努力地复习，几乎没有碰过手机。看到她为了考研闪闪发光的样子，NAong 觉得陪伴好有意义呀。明天也要和她一起战斗！加油，一战成硕！♡";
+            } else if (state.todayFocusMinutes > 0) {
+                txt = "今天她有在好好学习哦，不过中途小小的看了一两次手机，NAong 稍微有一点点小吃惊。但是没关系，及时找回状态的她依然超级棒！";
+            } else {
+                txt = "今天书本落了灰，NAong 也一个人寂寞地睡了一整天。有些小难过，打起精神找我开启专注呀！";
+            }
+            document.getElementById('diary-whisper').innerText = txt;
+            openSheet('diary-sheet');
+        }
+
+        function calculateCountdown() {
+            let examDate = new Date("2026-12-26");
+            let diff = examDate - new Date();
+            let days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            document.getElementById('countdown-day').innerText = days > 0 ? `🎯 距离 2027 考研还有: ${days} 天` : "🎉 考研冲刺中！";
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
