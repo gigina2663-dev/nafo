@@ -23,7 +23,7 @@
             display: flex;
             flex-direction: column;
             color: #333;
-            padding: calc(10px + env(safe-area-inset-top)) 16px calc(65px + env(safe-area-inset-bottom)) 16px;
+            padding: calc(6px + env(safe-area-inset-top)) 16px calc(60px + env(safe-area-inset-bottom)) 16px;
             user-select: none;
             -webkit-user-select: none;
             overflow: hidden;
@@ -34,38 +34,39 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 44px;
-            margin-bottom: 10px;
+            height: 40px;
+            margin-bottom: 6px;
             flex-shrink: 0;
         }
-        .app-title h1 { margin: 0; font-size: 22px; color: var(--purple); font-weight: 800; letter-spacing: -0.5px; }
+        .app-title h1 { margin: 0; font-size: 20px; color: var(--purple); font-weight: 800; letter-spacing: -0.5px; }
         .countdown-tag {
             background: rgba(229, 57, 53, 0.08); color: #e53935;
-            font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 8px; margin-top: 3px;
+            font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 6px; margin-top: 2px;
             display: inline-block;
         }
         .global-balance {
             background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(5px);
-            padding: 6px 14px; border-radius: 16px;
-            font-weight: bold; color: var(--purple); font-size: 14px;
+            padding: 4px 12px; border-radius: 14px;
+            font-weight: bold; color: var(--purple); font-size: 13px;
             box-shadow: 0 2px 8px rgba(156, 39, 176, 0.05);
         }
 
         /* 页面视图核心路由容器 */
-        .tab-view { display: none; flex: 1; flex-direction: column; overflow-y: auto; width: 100%; }
+        .tab-view { display: none; flex: 1; flex-direction: column; overflow-y: auto; width: 100%; min-height: 0; }
         .tab-view.active { display: flex; }
 
         /* ==================== TAB 1: 宠物巨幕专注页 ==================== */
-        #view-focus { justify-content: space-between; align-items: center; padding: 10px 0; }
+        #view-focus { justify-content: space-between; align-items: center; padding: 4px 0; }
         
-        /* 宠物面板史诗级放大，占据屏幕核心区域 */
+        /* 宠物面板：允许自由伸缩，绝不挤压下方的控制区 */
         .pet-panel-huge {
-            flex: 1; width: 100%; max-height: 55vh;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px;
+            flex: 1; width: 100%; min-height: 0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px;
         }
         .pet-avatar-box { 
-            width: 260px; height: 260px; /* 尺寸大幅跃升，适配 iPad 巨幕 */
-            border-radius: 38px; /* 完美的 iOS Apple 圓角 */
+            width: 240px; height: 240px;
+            max-width: 32vh; max-height: 32vh; /* 核心修复：横屏时根据屏幕高度自动缩放 */
+            border-radius: 32px;
             overflow: hidden; 
             box-shadow: 0 12px 35px rgba(156, 39, 176, 0.12); 
             background: #fff;
@@ -73,47 +74,47 @@
             transition: all 0.3s ease;
         }
         .pet-avatar-img { width: 100%; height: 100%; object-fit: cover; }
-        .pet-text { font-size: 15px; font-weight: 600; color: #444; text-align: center; max-width: 85%; min-height: 44px; line-height: 1.5; }
+        .pet-text { font-size: 14px; font-weight: 600; color: #444; text-align: center; max-width: 85%; min-height: 22px; line-height: 1.4; }
         
-        /* 控制组件区 */
-        .controls-box { width: 100%; background: rgba(255,255,255,0.45); backdrop-filter: blur(10px); border-radius: 20px; padding: 16px; border: 1px solid rgba(255,255,255,0.3); }
-        .timer-display { font-size: 48px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, monospace; color: var(--purple); text-align: center; }
-        .cheat-warning { font-size: 11px; color: #e53935; font-weight: bold; text-align: center; animation: pulse 2s infinite; margin-top: 2px; }
+        /* 控制组件区：确保稳稳留在屏幕内 */
+        .controls-box { width: 100%; background: rgba(255,255,255,0.45); backdrop-filter: blur(10px); border-radius: 18px; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0; }
+        .timer-display { font-size: 40px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, monospace; color: var(--purple); text-align: center; }
+        .cheat-warning { font-size: 11px; color: #e53935; font-weight: bold; text-align: center; animation: pulse 2s infinite; margin-top: 1px; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        .slider { width: 100%; margin: 14px 0; accent-color: var(--purple); }
+        .slider { width: 100%; margin: 10px 0; accent-color: var(--purple); }
         
         .main-btn {
-            width: 100%; height: 52px; border-radius: 26px; border: none; color: white; font-size: 16px; font-weight: bold;
-            background: var(--purple); box-shadow: 0 6px 18px rgba(156, 39, 176, 0.25); transition: all 0.2s ease;
+            width: 100%; height: 46px; border-radius: 23px; border: none; color: white; font-size: 15px; font-weight: bold;
+            background: var(--purple); box-shadow: 0 4px 14px rgba(156, 39, 176, 0.25); transition: all 0.2s ease;
         }
         .main-btn:active { transform: scale(0.98); }
-        .main-btn.abort { background: #e53935; box-shadow: 0 6px 18px rgba(229, 57, 53, 0.25); }
+        .main-btn.abort { background: #e53935; box-shadow: 0 4px 14px rgba(229, 57, 53, 0.25); }
         .runaway-btns { display: flex; gap: 10px; width: 100%; }
-        .btn-runaway-shop { background: var(--purple); color: white; flex: 1; height: 50px; border: none; border-radius: 25px; font-weight: bold; }
-        .btn-runaway-med { background: rgba(156, 39, 176, 0.12); color: var(--purple); flex: 1; height: 50px; border: none; border-radius: 25px; font-weight: bold; }
+        .btn-runaway-shop { background: var(--purple); color: white; flex: 1; height: 44px; border: none; border-radius: 22px; font-weight: bold; font-size: 14px; }
+        .btn-runaway-med { background: rgba(156, 39, 176, 0.12); color: var(--purple); flex: 1; height: 44px; border: none; border-radius: 22px; font-weight: bold; font-size: 14px; }
 
         /* ==================== TAB 2: 自习与日志数据页 ==================== */
-        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 12px; }
-        .stat-card { flex: 1; background: rgba(255, 255, 255, 0.6); padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.3); }
+        .dashboard-grid { display: flex; gap: 10px; margin-bottom: 10px; }
+        .stat-card { flex: 1; background: rgba(255, 255, 255, 0.6); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); }
         .stat-card div:first-child { font-size: 11px; color: #666; font-weight: 600; }
-        .stat-card div:last-child { font-size: 18px; font-weight: bold; color: var(--purple); margin-top: 2px; }
+        .stat-card div:last-child { font-size: 16px; font-weight: bold; color: var(--purple); margin-top: 2px; }
         
-        .card-box { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 18px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.3); }
-        .section-title { font-size: 12px; font-weight: 700; color: #777; margin: 4px 0 8px 2px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .notes-editor { width: 100%; height: 140px; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px; font-size: 14px; resize: none; outline: none; background: white; line-height: 1.5; }
-        .diary-speech-box { background: white; padding: 14px; border-radius: 14px; font-size: 13px; line-height: 1.6; color: #444; border: 1px solid rgba(0,0,0,0.02); min-height: 60px; }
+        .card-box { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 16px; padding: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.3); }
+        .section-title { font-size: 12px; font-weight: 700; color: #777; margin: 2px 0 6px 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .notes-editor { width: 100%; height: 110px; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 10px; font-size: 13px; resize: none; outline: none; background: white; line-height: 1.4; }
+        .diary-speech-box { background: white; padding: 12px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: #444; border: 1px solid rgba(0,0,0,0.02); min-height: 50px; }
 
         /* ==================== TAB 3: 商店与心愿中心页 ==================== */
-        .shop-card { background: rgba(255,255,255,0.6); padding: 14px; border-radius: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.2); }
-        .shop-item-info h4 { margin: 0; font-size: 15px; color: #1c1c1e; font-weight: 700; }
-        .shop-item-info p { margin: 4px 0 0 0; font-size: 12px; color: #777; }
-        .btn-exchange { background: var(--purple); color: white; border: none; padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: bold; transition: all 0.2s ease; }
+        .shop-card { background: rgba(255,255,255,0.6); padding: 12px; border-radius: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.2); }
+        .shop-item-info h4 { margin: 0; font-size: 14px; color: #1c1c1e; font-weight: 700; }
+        .shop-item-info p { margin: 2px 0 0 0; font-size: 11px; color: #777; }
+        .btn-exchange { background: var(--purple); color: white; border: none; padding: 6px 14px; border-radius: 10px; font-size: 12px; font-weight: bold; transition: all 0.2s ease; }
         .btn-exchange:disabled { background: #d1d1d6; color: #aeaeae; }
 
         /* iOS 原生高斯模糊底部 Tab 导航栏 */
         .tab-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
-            height: calc(55px + env(safe-area-inset-bottom));
+            height: calc(52px + env(safe-area-inset-bottom));
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border-top: 1px solid rgba(0, 0, 0, 0.08);
@@ -123,10 +124,10 @@
         }
         .tab-item {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: none; border: none; color: #8e8e93; font-size: 10px; font-weight: 500; gap: 3px;
+            background: none; border: none; color: #8e8e93; font-size: 10px; font-weight: 500; gap: 2px;
         }
         .tab-item.active { color: var(--purple); font-weight: 700; }
-        .tab-item span { font-size: 20px; }
+        .tab-item span { font-size: 18px; }
     </style>
 </head>
 <body>
@@ -153,8 +154,7 @@
             <div id="timer-text" class="timer-display">25 分钟</div>
             <div id="cheat-indicator" class="cheat-warning" style="display:none;">⏳ 智能防作弊监控中...</div>
             <input type="range" id="timer-slider" class="slider" min="5" max="120" step="5" value="25" oninput="updateSlider(this.value)">
-            <div id="button-container" style="margin-top: 6px;">
-                <!-- 按钮通过 JavaScript 精准维护，不再破坏 ID -->
+            <div id="button-container" style="margin-top: 4px;">
                 <button id="action-btn" class="main-btn" onclick="handleMainAction()">开启锁机专注 (25分钟)</button>
             </div>
         </div>
@@ -173,7 +173,7 @@
             </div>
         </div>
         
-        <div class="card-box" style="text-align: center; padding: 10px; font-size: 12px; font-weight: bold; color: var(--purple);">
+        <div class="card-box" style="text-align: center; padding: 8px; font-size: 12px; font-weight: bold; color: var(--purple);">
             <span id="milestone-tip">🎯 距离今日6小时达标奖励还差: -- 分钟</span>
         </div>
 
@@ -230,7 +230,6 @@
     </div>
 
     <script>
-        // 状态持久化库
         let state = {
             iceCreams: parseInt(localStorage.getItem('iceCreams')) || 10,
             totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
@@ -248,7 +247,6 @@
             rewarded10H: localStorage.getItem('rewarded10H') === 'true'
         };
 
-        // 高清图像深度映射
         const NAongStates = {
             defaultState: { text: "📚 准备好开始今天的考研复习了吗？", img: "https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" },
             studying: { text: "✍️ 专注的你真好看，我会一直陪着你。", img: "https://i.postimg.cc/prnckGFm/naong-studying.jpg" },
@@ -276,7 +274,6 @@
             Object.keys(state).forEach(key => localStorage.setItem(key, state[key]));
         }
 
-        // 高阶 SPA 路由页面切换
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
             document.querySelectorAll('.tab-item').forEach(item => item.classList.remove('active'));
@@ -290,7 +287,6 @@
         }
 
         function updateUI() {
-            // 全局资产同步
             document.getElementById('global-icecream').innerText = state.iceCreams;
             document.getElementById('today-time').innerText = state.todayFocusMinutes.toFixed(1) + " 分钟";
             document.getElementById('total-time').innerText = state.totalFocusMinutes.toFixed(1) + " 分钟";
@@ -304,12 +300,10 @@
             document.getElementById('review-status').innerText = state.userNotes.trim() ? "已复盘" : "缺复盘";
             document.getElementById('review-status').style.color = state.userNotes.trim() ? "#4caf50" : "#ff9800";
             
-            // 核心大图渲染
             let cur = NAongStates[state.currentStatus];
             document.getElementById('pet-img').src = cur.img;
             document.getElementById('pet-msg').innerText = cur.text;
 
-            // 彻底重构的无冲突按钮渲染控制
             let sliderEl = document.getElementById('timer-slider');
             let btnContainer = document.getElementById('button-container');
 
@@ -328,7 +322,6 @@
                 }
             }
 
-            // 里程碑文案更新
             let tip = "";
             if (state.todayFocusMinutes < 360) {
                 tip = `🎯 距离今日 6小时 达标奖励还差: ${Math.ceil(360 - state.todayFocusMinutes)} 分钟`;
@@ -341,14 +334,12 @@
             }
             document.getElementById('milestone-tip').innerText = tip;
 
-            // 动态控制商店置灰
             document.querySelectorAll('#view-shop .btn-exchange').forEach((btn, idx) => {
                 let costs = [5, 10, 40, 70, 120, 200];
                 btn.disabled = state.iceCreams < costs[idx];
             });
         }
 
-        // 时间滑动响应（已彻底修复）
         function updateSlider(val) {
             currentFocusDuration = parseInt(val);
             document.getElementById('timer-text').innerText = val + " 分钟";
