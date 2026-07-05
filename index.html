@@ -296,7 +296,7 @@
         <button onclick="closeRewardModal()" style="width: 60%; max-width: 200px; height: 44px; border-radius: 22px; border: none; background: var(--pink); color: white; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">领取奖励 🍦</button>
     </div>
 
-    <!-- 诚实对账协议：已斩草除根「锁屏背诵」选项 -->
+    <!-- 诚实对账协议 -->
     <div id="appeal-modal" class="reward-modal">
         <img id="appeal-img" src="https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" alt="Naong Disappointed">
         <h2 style="color: var(--purple); margin: 0 0 4px 0; font-size: 18px; font-weight: 800;">诚实对账协议</h2>
@@ -657,37 +657,31 @@
             }
         }
 
-        // Focus v2.1 风险值综合计算分类器（5分钟以内严格判定为分心行为，不可免责）
         function analyzeBehaviorWindow() {
             if (!isRunning || state.behaviorBuffer.length === 0) return;
 
             let latestRecord = state.behaviorBuffer[state.behaviorBuffer.length - 1];
             let riskScore = 0;
 
-            // 规则①：后台时长权重（5分钟以内属于分心犯规）
             let bgSec = latestRecord.duration;
             if (bgSec < 300) {
                 if (bgSec < 20) riskScore += 3;
                 else if (bgSec <= 60) riskScore += 4;
                 else riskScore += 5;
             } else {
-                // 超过 5 分钟判定为长效锁屏背诵，触发免责扣分倒扣减免
                 riskScore -= 2;
             }
 
-            // 规则②：最近退出频次
             let exitCount = state.behaviorBuffer.length;
             if (exitCount === 2) riskScore += 2;
             else if (exitCount === 3) riskScore += 5;
             else if (exitCount >= 4) riskScore += 10;
 
-            // 规则③：前台坚守深度
             let foreSec = latestRecord.foregroundDuration;
             if (foreSec >= 30 * 60) riskScore -= 4; 
             else if (foreSec >= 15 * 60) riskScore -= 2; 
             else if (foreSec > 0 && foreSec < 10) riskScore += 5; 
 
-            // 规则④：高频闪退复刻分析 (判定社交软件刷屏特征)
             if (state.behaviorBuffer.length >= 3) {
                 let last3 = state.behaviorBuffer.slice(-3);
                 let looksLikeSocialMedia = last3.every(b => b.duration <= 30);
@@ -696,12 +690,10 @@
                 }
             }
 
-            // 规则⑤：5分钟以上长效背诵彻底豁免
             if (bgSec >= 5 * 60 && foreSec >= 20 * 60) {
                 riskScore = 0; 
             }
 
-            // 规则⑥：结合历史诚信度进行修正
             if (state.trustScore >= 90) {
                 riskScore -= 2; 
             } else if (state.trustScore < 50) {
@@ -710,7 +702,6 @@
 
             riskScore = Math.max(0, riskScore);
 
-            // 精细化梯度处理与计算完整度
             focusIntegrity = Math.max(10, 100 - riskScore);
             document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
 
@@ -726,9 +717,12 @@
                 document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了前台 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>（5分钟内确认为分心动作，风险值: ${riskScore}）！<br>为了考研大局，请诚实对账：`;
                 document.getElementById('appeal-modal').style.display = 'flex';
             } else if (riskScore >= 7) {
-                state.todayBackgroundCount++;
-                state.todayBackgroundSeconds += bgSec;
-                state.trustScore = Math.max(0, state.trustScore - 5); 
+                // 如果是正常的锁屏（大于等于5分钟），这里不计入今日开小差统计数据
+                if (bgSec < 300) {
+                    state.todayBackgroundCount++;
+                    state.todayBackgroundSeconds += bgSec;
+                    state.trustScore = Math.max(0, state.trustScore - 5); 
+                }
                 saveState(); updateUI();
             }
         }
@@ -762,13 +756,16 @@
             let now = Date.now();
             let totalElapsedSeconds = (now - state.focusStartTime) / 1000;
             
-            // 🔥【核心修正】累加当前专注周期里所有切屏离开的总秒数
+            // 🔥【重大修复】在这里设置了智能过滤器：
+            // 只有单次小于 5 分钟 (300秒) 的隐藏才会累计作为“开小差分心时间”被扣除。
+            // 任何大于等于 300 秒的长效离线，均会被视作正常的“锁屏背诵/暗屏专注”，不会从实际坚守时间中扣掉！
             let totalBgSecondsInSession = 0;
             if (state.behaviorBuffer && state.behaviorBuffer.length > 0) {
-                totalBgSecondsInSession = state.behaviorBuffer.reduce((sum, item) => sum + (item.duration || 0), 0);
+                totalBgSecondsInSession = state.behaviorBuffer.reduce((sum, item) => {
+                    return sum + (item.duration < 300 ? item.duration : 0);
+                }, 0);
             }
             
-            // 真正拿到了脱水后的真实高效专注秒数
             let trueFocusedSeconds = Math.max(0, totalElapsedSeconds - totalBgSecondsInSession);
             let realElapsedMinutes = parseFloat((trueFocusedSeconds / 60).toFixed(2));
             
@@ -792,7 +789,7 @@
 
                 checkMilestone();
                 
-                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n(已全额扣除中途切屏闲逛时间)\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌代币奖励！`;
+                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n(已智能保留长周期锁屏深读时间)\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌代币奖励！`;
                 document.getElementById('reward-modal').style.display = 'flex';
                 
                 let sliderEl = document.getElementById('timer-slider');
