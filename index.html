@@ -15,7 +15,6 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* 强制全屏一屏流，严禁滚动 */
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
@@ -31,7 +30,6 @@
             overflow: hidden;
         }
 
-        /* 紧凑顶栏 */
         .app-header {
             display: flex;
             justify-content: space-between;
@@ -52,15 +50,13 @@
             font-weight: bold; color: var(--purple); font-size: 12px;
         }
 
-        /* 页面视图核心路由容器 */
         .tab-view { display: none; flex: 1; flex-direction: column; width: 100%; min-height: 0; overflow: hidden; }
         .tab-view.active { display: flex; }
 
-        /* ==================== TAB 1: 极致放大拿拿专注页 ==================== */
+        /* TAB 1 */
         #view-focus { display: none; flex-direction: column; height: 100%; justify-content: space-between; }
         #view-focus.active { display: flex; }
         
-        /* 拿拿 视觉 C 位 */
         .pet-panel-huge {
             flex: 1;
             display: flex;
@@ -72,36 +68,24 @@
             padding: 4px 0;
         }
         .pet-avatar-box { 
-            width: 85vw;
-            height: 85vw;
-            max-width: 350px;
-            max-height: 350px;
-            border-radius: 50%; 
-            overflow: hidden; 
+            width: 75vw; height: 75vw; max-width: 300px; max-height: 300px;
+            border-radius: 50%; overflow: hidden; 
             box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15); 
-            background: #fff;
-            border: 5px solid rgba(255,255,255,0.9);
+            background: #fff; border: 5px solid rgba(255,255,255,0.9);
             transition: all 0.3s ease;
         }
         .pet-avatar-img { width: 100%; height: 100%; object-fit: cover; }
         .pet-text { font-size: 13px; font-weight: 600; color: #444; text-align: center; max-width: 90%; min-height: 36px; line-height: 1.4; margin-top: 8px; }
         
-        /* 控制台 */
         .controls-box { 
-            width: 100%; 
-            background: rgba(255,255,255,0.45); 
-            backdrop-filter: blur(10px); 
-            border-radius: 16px; 
-            padding: 8px 14px; 
-            border: 1px solid rgba(255,255,255,0.3); 
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            width: 100%; background: rgba(255,255,255,0.45); backdrop-filter: blur(10px); 
+            border-radius: 16px; padding: 10px 14px; border: 1px solid rgba(255,255,255,0.3); 
+            flex-shrink: 0; display: flex; flex-direction: column; gap: 4px;
         }
         .timer-display { font-size: 32px; font-weight: 800; font-family: monospace; color: var(--purple); text-align: center; line-height: 1; }
-        .cheat-warning { font-size: 10px; color: #e53935; font-weight: bold; text-align: center; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .integrity-display { font-size: 10px; color: #666; text-align: center; font-weight: bold; margin-top: -2px;}
+        .cheat-warning { font-size: 10px; color: #ff9800; font-weight: bold; text-align: center; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
         
         .slider { width: 100%; margin: 2px 0; accent-color: var(--purple); height: 14px; }
         
@@ -115,22 +99,22 @@
         .btn-runaway-shop { background: var(--purple); color: white; flex: 1; height: 38px; border: none; border-radius: 19px; font-weight: bold; font-size: 12px; }
         .btn-runaway-med { background: rgba(156, 39, 176, 0.12); color: var(--purple); flex: 1; height: 38px; border: none; border-radius: 19px; font-weight: bold; font-size: 12px; }
 
-        /* ==================== TAB 2 & TAB 3 布局样式 ==================== */
-        .dashboard-grid { display: flex; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
+        /* TAB 2 & TAB 3 */
+        .dashboard-grid { display: flex; gap: 8px; margin-bottom: 4px; flex-shrink: 0; }
         .stat-card { flex: 1; background: rgba(255, 255, 255, 0.6); padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); }
         .stat-card div:first-child { font-size: 10px; color: #666; font-weight: 600; }
         .stat-card div:last-child { font-size: 14px; font-weight: bold; color: var(--purple); }
         
-        .card-box { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 14px; padding: 10px; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.3); min-height: 0; display: flex; flex-direction: column; }
+        .card-box { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 14px; padding: 10px; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.3); min-height: 0; display: flex; flex-direction: column; }
         .section-title { font-size: 11px; font-weight: 700; color: #777; margin: 0 0 4px 2px; text-transform: uppercase; }
         
-        .notes-editor { width: 100%; height: 75px; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 6px 8px; font-size: 12px; resize: none; outline: none; background: white; line-height: 1.3; }
+        .notes-editor { width: 100%; height: 65px; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 6px 8px; font-size: 12px; resize: none; outline: none; background: white; line-height: 1.3; }
         .diary-speech-box { background: white; padding: 8px 10px; border-radius: 10px; font-size: 12px; line-height: 1.4; color: #444; border: 1px solid rgba(0,0,0,0.02); flex: 1; overflow-y: auto; }
 
         .history-container { flex: 1; min-height: 0; display: flex; flex-direction: column; }
         .history-log-item { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px dashed rgba(0,0,0,0.05); font-size: 11px; }
 
-        .shop-list-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-bottom: 4px; }
+        .shop-list-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-bottom: 40px; }
         .shop-card { background: rgba(255,255,255,0.6); padding: 8px 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
         .shop-item-info h4 { margin: 0; font-size: 13px; color: #1c1c1e; font-weight: 700; }
         .shop-item-info p { margin: 1px 0 0 0; font-size: 10px; color: #777; }
@@ -142,28 +126,26 @@
         }
         .btn-exchange:disabled { background: #d1d1d6; color: #aeaeae; box-shadow: none; }
 
-        /* 专注结束全屏礼包与申诉弹窗结构 */
+        /* 弹窗 */
         .reward-modal {
             display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.95);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 2000;
             flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;
         }
-        .reward-modal img { width: 160px; height: 160px; border-radius: 50%; border: 4px solid white; box-shadow: 0 10px 25px rgba(156,39,176,0.15); object-fit: cover; margin-bottom: 15px; }
+        .reward-modal img { width: 140px; height: 140px; border-radius: 50%; border: 4px solid white; box-shadow: 0 10px 25px rgba(156,39,176,0.15); object-fit: cover; margin-bottom: 12px; }
 
-        .appeal-btn-group { display: flex; gap: 12px; width: 100%; max-width: 280px; margin-top: 15px; }
-        .btn-appeal-ok { flex: 1; height: 42px; border-radius: 21px; border: none; background: #4caf50; color: white; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(76,175,80,0.2); }
-        .btn-appeal-no { flex: 1; height: 42px; border-radius: 21px; border: none; background: #e53935; color: white; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(229,57,53,0.2); }
+        .appeal-vertical-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px; margin-top: 10px; }
+        .btn-appeal-option { width: 100%; height: 36px; border-radius: 18px; border: 1px solid rgba(0,0,0,0.1); background: white; color: #333; font-weight: 600; font-size: 12px; transition: all 0.2s; }
+        .btn-appeal-option:active { background: #f2f2f7; }
+        .btn-appeal-option.honest { background: rgba(156, 39, 176, 0.08); color: var(--purple); border-color: rgba(156, 39, 176, 0.2); }
 
-        /* 底部模糊导航 */
+        /* 底部导航 */
         .tab-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
             height: calc(48px + env(safe-area-inset-bottom));
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(0, 0, 0, 0.08);
-            display: flex;
-            padding-bottom: env(safe-area-inset-bottom);
-            z-index: 999;
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(0, 0, 0, 0.08); display: flex;
+            padding-bottom: env(safe-area-inset-bottom); z-index: 999;
         }
         .tab-item {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -175,7 +157,6 @@
 </head>
 <body>
 
-    <!-- 全局一屏流顶栏 -->
     <div class="app-header">
         <div class="app-title" style="display: flex; align-items: center; gap: 6px;">
             <h1>拿拿 Focus</h1>
@@ -184,7 +165,6 @@
         <div class="global-balance">🍦 <span id="global-icecream">10.0</span></div>
     </div>
 
-    <!-- ==================== TAB 1: 极致放大拿拿专注页 ==================== -->
     <div id="view-focus" class="tab-view active">
         <div class="pet-panel-huge">
             <div class="pet-avatar-box">
@@ -194,8 +174,9 @@
         </div>
 
         <div class="controls-box">
-            <div id="timer-text" class="timer-display">25 分钟</div>
-            <div id="cheat-indicator" class="cheat-warning" style="display:none;">⏳ 节能防作弊监控中...</div>
+            <div id="timer-text" class="timer-display">25:00</div>
+            <div id="integrity-text" class="integrity-display" style="display:none;">专注完整度: 100%</div>
+            <div id="cheat-indicator" class="cheat-warning" style="display:none;">⏳ 拿拿正在前台认真陪读中...</div>
             <input type="range" id="timer-slider" class="slider" min="5" max="120" step="5" value="25" oninput="updateSlider(this.value)">
             <div id="button-container">
                 <button id="action-btn" class="main-btn" onclick="handleMainAction()">开启锁机专注 (25分钟)</button>
@@ -203,7 +184,6 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 2: 紧凑独立跨天日志页 ==================== -->
     <div id="view-stats" class="tab-view">
         <div class="dashboard-grid">
             <div class="stat-card">
@@ -215,21 +195,29 @@
                 <div id="total-time">0.0 分钟</div>
             </div>
         </div>
+
+        <div class="dashboard-grid" style="margin-bottom: 4px;">
+            <div class="stat-card" style="padding: 4px 10px;">
+                <div>📱 今日后台/时间</div>
+                <div id="today-bg-stats" style="font-size: 11px; color:#555;">0次 / 0秒</div>
+            </div>
+            <div class="stat-card" style="padding: 4px 10px;">
+                <div>🛡️ 今日均完整度</div>
+                <div id="today-avg-integrity" style="font-size: 11px; color:#555;">100%</div>
+            </div>
+        </div>
         
         <div class="card-box" style="text-align: center; padding: 4px; font-size: 11px; font-weight: bold; color: var(--purple);">
             <span id="milestone-tip">🎯 达标奖励还差: -- 分钟</span>
         </div>
 
-        <!-- 今日独立日志框 -->
         <div class="card-box">
             <div class="section-title" style="display:flex; justify-content:space-between;">
                 <span>📝 今日复盘日志 (<span id="review-status">缺复盘</span>)</span>
-                <span onclick="clearDayData()" style="color:#e53935; cursor:pointer; font-weight:bold;">🧼 重置数值</span>
             </div>
             <textarea id="notes-area" class="notes-editor" placeholder="在此记录今日努力……" oninput="saveNotes(this.value)"></textarea>
         </div>
 
-        <!-- 历史档案复合面板 -->
         <div class="card-box" style="flex: 1; min-height: 0; gap: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="section-title" id="diary-date" style="margin:0;">📖 拿拿 的观察日志</div>
@@ -244,15 +232,14 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 3: 吸睛粉色心愿铺 ==================== -->
     <div id="view-shop" class="tab-view" style="padding-bottom: 2px;">
         <div class="section-title" style="color: #e53935; margin-bottom: 2px;">⚠️ 紧急赎身包</div>
         <div class="shop-card" style="border: 1px solid rgba(229,57,53,0.15); padding: 6px 12px;">
-            <div class="shop-item-info"><h4>🥖 充饥面包 [秒解锁]</h4><p>扣除 3H 成果重获自由</p></div>
-            <button class="btn-exchange" style="background:#e53935; box-shadow:0 2px 4px rgba(229,57,53,0.15);" onclick="buyEmergency(15)">15 🍦</button>
+            <div class="shop-item-info"><h4>🥖 充饥面包 [解除锁机]</h4><p>自律破产赎身包（高昂代价）</p></div>
+            <button class="btn-exchange" style="background:#e53935; box-shadow:0 2px 4px rgba(229,57,53,0.15);" onclick="buyEmergency(50)">50 🍦</button>
         </div>
         
-        <div class="section-title" style="margin-top: 4px; margin-bottom: 2px;">🎁 自律心愿单 (有钱即亮起元气粉)</div>
+        <div class="section-title" style="margin-top: 4px; margin-bottom: 2px;">🎁 自律心愿单</div>
         <div class="shop-list-container">
             <div class="shop-card">
                 <div class="shop-item-info"><h4>🧋 买一杯喜欢的饮料</h4><p>累计已兑: <span id="cnt-m">0</span> 次</p></div>
@@ -273,26 +260,26 @@
         </div>
     </div>
 
-    <!-- ==================== 专注完成礼包弹窗 (Modal) ==================== -->
     <div id="reward-modal" class="reward-modal">
         <img src="https://i.postimg.cc/brL43YLs/naong_excited.png.png" alt="Excited Nana">
         <h2 style="color: var(--purple); margin: 0 0 8px 0; font-size: 22px; font-weight: 800;">任务达成！</h2>
-        <p id="modal-reward-msg" style="color: #444; font-size: 14px; margin: 0 0 25px 0; font-weight: 600; line-height: 1.4;">拿拿 兴奋地为你鼓掌！奖励已发放。</p>
+        <p id="modal-reward-msg" style="color: #444; font-size: 14px; margin: 0 0 25px 0; font-weight: 600; line-height: 1.4;"></p>
         <button onclick="closeRewardModal()" style="width: 60%; max-width: 200px; height: 44px; border-radius: 22px; border: none; background: var(--pink); color: white; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">领取奖励 🍦</button>
     </div>
 
-    <!-- ==================== 智能对账及切屏防误判申诉弹窗 ==================== -->
     <div id="appeal-modal" class="reward-modal">
-        <img id="appeal-img" src="https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" alt="Nana Disappointed">
-        <h2 style="color: var(--purple); margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">切屏防作弊协议</h2>
-        <p id="appeal-msg" style="color: #444; font-size: 13px; margin: 0 0 15px 0; font-weight: 600; line-height: 1.4; padding: 0 10px;"></p>
-        <div class="appeal-btn-group">
-            <button class="btn-appeal-ok" onclick="resolveAppeal(true)">我是清白的<br><span style="font-size:9px;font-weight:normal;">(来电/系统锁屏)</span></button>
-            <button class="btn-appeal-no" onclick="resolveAppeal(false)">我认罚<br><span style="font-size:9px;font-weight:normal;">(去开小差了)</span></button>
+        <img id="appeal-img" src="https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" alt="Nana">
+        <h2 style="color: var(--purple); margin: 0 0 4px 0; font-size: 18px; font-weight: 800;">诚实对账协议</h2>
+        <p id="appeal-msg" style="color: #444; font-size: 12px; margin: 0 0 10px 0; font-weight: 600; line-height: 1.4; padding: 0 10px;"></p>
+        <div class="appeal-vertical-group">
+            <button class="btn-appeal-option" onclick="resolveAppeal('lockscreen')">📖 我刚才一直在锁屏安心背诵</button>
+            <button class="btn-appeal-option" onclick="resolveAppeal('call')">📞 刚刚接了个电话/系统拦截</button>
+            <button class="btn-appeal-option" onclick="resolveAppeal('water')">🚰 离座去接水/上洗手间了</button>
+            <button class="btn-appeal-option" onclick="resolveAppeal('material')">📚 在用手机查复习资料</button>
+            <button class="btn-appeal-option honest" onclick="resolveAppeal('phone')">📱 被抓包了，确实偷偷刷了手机</button>
         </div>
     </div>
 
-    <!-- 底部导航 -->
     <div class="tab-bar">
         <button class="tab-item active" onclick="switchTab('view-focus', this)"><span>🐾</span>专属陪伴</button>
         <button class="tab-item" onclick="switchTab('view-stats', this)"><span>📊</span>自习日志</button>
@@ -305,93 +292,98 @@
             return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
         }
 
+        // 简化的核心有限状态机状态：Idle, Studying, Warning, Recovering, Completed
         let state = {
             iceCreams: parseFloat(localStorage.getItem('iceCreams')) || 10.0,
             totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
             todayFocusMinutes: parseFloat(localStorage.getItem('todayFocusMinutes')) || 0.0,
-            iceCreamsEarnedToday: parseFloat(localStorage.getItem('iceCreamsEarnedToday')) || 0.0,
             isLocked: localStorage.getItem('isLocked') === 'true',
-            currentStatus: localStorage.getItem('currentStatus') || 'defaultState',
+            currentStatus: localStorage.getItem('currentStatus') || 'Idle', 
             lastDate: localStorage.getItem('lastDate') || getTodayStr(),
-            todayVisitCount: parseInt(localStorage.getItem('todayVisitCount')) || 0,
+            
+            // 统计相关
+            todayBackgroundCount: parseInt(localStorage.getItem('todayBackgroundCount')) || 0,
+            todayBackgroundSeconds: parseInt(localStorage.getItem('todayBackgroundSeconds')) || 0,
+            todayTotalIntegrity: parseFloat(localStorage.getItem('todayTotalIntegrity')) || 0,
+            todayCompletedSessions: parseInt(localStorage.getItem('todayCompletedSessions')) || 0,
+
             dailyLogs: {}, 
             countMilkTea: parseInt(localStorage.getItem('countMilkTea')) || 0,
             countChicken: parseInt(localStorage.getItem('countChicken')) || 0,
             countToy: parseInt(localStorage.getItem('countToy')) || 0,
             countClothes: parseInt(localStorage.getItem('countClothes')) || 0,
+            
             rewarded6H: localStorage.getItem('rewarded6H') === 'true',
             rewarded8H: localStorage.getItem('rewarded8H') === 'true',
-            rewarded10H: localStorage.getItem('rewarded10H') === 'true'
+            rewarded10H: localStorage.getItem('rewarded10H') === 'true',
+
+            // 时间戳对账核心变量
+            leaveTime: parseInt(localStorage.getItem('leaveTime')) || 0,
+            lastHeartbeatTime: parseInt(localStorage.getItem('lastHeartbeatTime')) || 0
         };
 
         try { state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {}; } catch(e) { state.dailyLogs = {}; }
 
-        // 精准绑定情绪图片与拿拿提示语
+        // 拿拿的元气表情包库与提示词映射
         const nanaStates = {
-            defaultState: { text: "📚 准备开始今天的学习了吗？拿拿 已经帮你把书翻开啦！", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" },
-            studying: { text: "✍️ 专注的你真好看，我会一直陪着你。", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" },
-            puzzled: { text: "🤔 刚才溜出去了一下下哦？警告一次，小扣 0.2 🍦，快继续专注！", img: "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" },
-            angry: { text: "💢 抓包！你居然切出去开小差超过 1 分钟！严格扣除 1.0 🍦！", img: "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg" },
-            crying: { text: "😭 太失望了，你居然切出去玩了 5 分钟以上！重罚扣除 2.0 🍦！", img: "https://i.postimg.cc/3N9znr9w/naong_sad.png.jpg" },
-            sleeping: { text: "💤 离家出走中！去商店氪金面包，或者肉身面壁5分钟！", img: "https://i.postimg.cc/901sJX1z/naong_punished.png.jpg" },
-            happy: { text: "🍦 太棒啦！完成了目标，这是奖励你的冰激凌！", img: "https://i.postimg.cc/Vvz3q09t/naong_happy.png.jpg" },
-            excited: { text: "🎉 又离上岸更近一步，兴奋到转圈圈啦！", img: "https://i.postimg.cc/brL43YLs/naong_excited.png.png" },
-            forgiven: { text: "哼，看在你重新坐回书桌前这么认真的份上，拿拿就原谅你啦！不许再乱跑了哦，继续冲！", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" }
+            Idle: { text: "📚 准备开始今天的学习了吗？拿拿 已经帮你把书翻开啦！", img: "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg" },
+            Studying: { text: "✍️ 专注的你真好看，我会一直陪着你。", img: "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg" },
+            Warning: { text: "🤔 刚刚去哪儿啦？拿拿正在等你对账哦...", img: "https://i.postimg.cc/1XMbJRMX/naong-disappointed.png.jpg" },
+            Recovering: { text: "哼，拿拿现在有点小情绪！不许再乱跑了，把前台保持住，看你表现！", img: "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg" },
+            Forgiven: { text: "好啦好啦，看在你重新认真坐好的份上，拿拿原谅你啦！继续加油！", img: "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg" },
+            Completed: { text: "🎉 又是离上岸更近的一节！拿拿兴奋得原地转圈圈！", img: "https://i.postimg.cc/brL43YLs/naong_excited.png.png" },
+            Sleeping: { text: "💤 强制小黑屋关闭中！去商店换个面包，或者闭门冥思苦修...", img: "https://i.postimg.cc/901sJX1z/naong_punished.png.jpg" }
         };
 
-        let timerInterval = null, isRunning = false, timeRemaining = 0, currentFocusDuration = 25, lastBackgroundTime = null;
-        let pendingDeduction = { status: '', penalty: 0, secondsToSubtract: 0 };
-        
-        // 戴罪立功核心计时变量 (秒数)
-        let calmDownCountdown = 0; 
+        // 前台高频计时变量
+        let timerInterval = null, heartbeatInterval = null, isRunning = false;
+        let timeRemaining = 0, currentFocusDuration = 25;
+        let focusIntegrity = 100; // 本次专注初始完整度
+        let recoveryCountdown = 0; // 戴罪立功倒计时（秒）
+        let pendingSettleData = null; // 缓存等待结算的数据
 
         function init() { 
-            let isNew = checkNewDay(); 
-            if (!isNew) {
-                state.todayVisitCount = (parseInt(localStorage.getItem('todayVisitCount')) || 1) + 1;
-                saveState();
-            }
-            
-            setGreetingPool(); 
+            checkNewDay(); 
             updateUI(); 
             calculateCountdown(); 
             updateDiaryView(); 
+            
+            // 安全解绑并重新绑定，彻底防止历史监听重叠
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
             document.addEventListener("visibilitychange", handleVisibilityChange); 
+
+            // 如果异常刷新导致状态卡在Studying，平滑拉回到Idle
+            if(state.currentStatus === 'Studying' && !isRunning) {
+                state.currentStatus = 'Idle';
+                saveState();
+                updateUI();
+            }
         }
 
-        function saveState() { Object.keys(state).forEach(key => { if (typeof state[key] === 'object' && state[key] !== null) { localStorage.setItem(key, JSON.stringify(state[key])); } else { localStorage.setItem(key, state[key]); } }); }
+        function saveState() { 
+            Object.keys(state).forEach(key => { 
+                if (typeof state[key] === 'object' && state[key] !== null) { 
+                    localStorage.setItem(key, JSON.stringify(state[key])); 
+                } else { 
+                    localStorage.setItem(key, state[key]); 
+                } 
+            }); 
+        }
         
         function checkNewDay() {
             let today = getTodayStr();
             if (state.lastDate !== today) {
-                state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0;
+                state.todayFocusMinutes = 0;
+                state.todayBackgroundCount = 0;
+                state.todayBackgroundSeconds = 0;
+                state.todayTotalIntegrity = 0;
+                state.todayCompletedSessions = 0;
                 state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
-                state.todayVisitCount = 1;
                 state.lastDate = today;
                 saveState();
                 return true;
             }
             return false;
-        }
-
-        function setGreetingPool() {
-            if (state.todayVisitCount <= 1) {
-                nanaStates.defaultState.text = "📚 准备开始今天的学习了吗？拿拿 已经帮你把书翻开啦！";
-            } else {
-                const pool = [
-                    `👀 悄悄探头……你今天已经是第 ${state.todayVisitCount} 次打开我了，刚才是不是偷偷去刷短视频啦？`,
-                    `📱 频繁刷新可考不上研哦！老实交代，刚才去干嘛了？`,
-                    `✨ 欢迎回来！刚才去喝水还是去背政治/单词啦？休息好了就继续吧！`,
-                    `🐾 贴贴！看到你再次上线，拿拿 就知道你没有放弃，我们继续冲！`,
-                    `⏳ 距离上岸的时间又少了一点点，别看手机了，快带我开启专注！`,
-                    `🔥 目标院校在向你招手！今天的复习进度条还空着呢，速速开始！`
-                ];
-                let randIndex = Math.floor(Math.random() * pool.length);
-                nanaStates.defaultState.text = pool[randIndex];
-            }
-            if (state.currentStatus === 'defaultState') {
-                document.getElementById('pet-msg').innerText = nanaStates.defaultState.text;
-            }
         }
 
         function switchTab(tabId, element) {
@@ -406,18 +398,25 @@
             document.getElementById('today-time').innerText = state.todayFocusMinutes.toFixed(1) + " 分";
             document.getElementById('total-time').innerText = state.totalFocusMinutes.toFixed(1) + " 分";
             
+            // 行为统计展示
+            document.getElementById('today-bg-stats').innerText = `${state.todayBackgroundCount}次 / ${state.todayBackgroundSeconds}秒`;
+            let avgInteg = state.todayCompletedSessions > 0 ? Math.round(state.todayTotalIntegrity / state.todayCompletedSessions) : 100;
+            document.getElementById('today-avg-integrity').innerText = avgInteg + "%";
+
             let today = getTodayStr();
-            let todayNotes = state.dailyLogs[today] || '';
-            document.getElementById('notes-area').value = todayNotes;
+            document.getElementById('notes-area').value = state.dailyLogs[today] || '';
             
             document.getElementById('cnt-m').innerText = state.countMilkTea;
             document.getElementById('cnt-c').innerText = state.countChicken;
             document.getElementById('cnt-t').innerText = state.countToy;
             document.getElementById('cnt-cl').innerText = state.countClothes;
+            
+            let todayNotes = state.dailyLogs[today] || '';
             document.getElementById('review-status').innerText = todayNotes.trim() ? "已复盘" : "缺复盘";
             document.getElementById('review-status').style.color = todayNotes.trim() ? "#4caf50" : "#ff9800";
             
-            let cur = nanaStates[state.currentStatus];
+            // 挂载情绪
+            let cur = nanaStates[state.currentStatus] || nanaStates.Idle;
             document.getElementById('pet-img').src = cur.img;
             document.getElementById('pet-msg').innerText = cur.text;
 
@@ -428,7 +427,7 @@
                 sliderEl.disabled = true;
                 btnContainer.innerHTML = `<div class="runaway-btns">
                     <button class="btn-runaway-shop" onclick="switchTab('view-shop', document.querySelectorAll('.tab-item')[2])">🛒 走捷径解锁</button>
-                    <button class="btn-runaway-med" onclick="startMeditation()">🧘‍♂️ 面壁5分钟</button>
+                    <button class="btn-runaway-med" onclick="startMeditation()">🧘‍♂️ 强行面壁5分钟</button>
                 </div>`;
             } else {
                 sliderEl.disabled = isRunning;
@@ -446,7 +445,7 @@
             else { tip = `👑 今日已通关10H战神大奖！`; }
             document.getElementById('milestone-tip').innerText = tip;
 
-            let costs = [15, 200, 500, 1000, 2500];
+            let costs = [50, 200, 500, 1000, 2500];
             document.querySelectorAll('#view-shop .btn-exchange').forEach((btn, idx) => {
                 btn.disabled = state.iceCreams < costs[idx];
             });
@@ -454,7 +453,8 @@
 
         function updateSlider(val) {
             currentFocusDuration = parseInt(val);
-            document.getElementById('timer-text').innerText = val + " 分钟";
+            let mins = val.toString().padStart(2,'0');
+            document.getElementById('timer-text').innerText = `${mins}:00`;
             let actionBtn = document.getElementById('action-btn');
             if (actionBtn && !isRunning) { actionBtn.innerText = `开启锁机专注 (${val}分钟)`; }
         }
@@ -462,153 +462,230 @@
         function handleMainAction() { if(!isRunning && !state.isLocked) { startFocus(); } }
 
         function startFocus() {
-            checkNewDay(); isRunning = true; timeRemaining = currentFocusDuration * 60;
-            calmDownCountdown = 0; // 重置消除CD
-            if(!state.isLocked) { state.currentStatus = 'studying'; }
+            checkNewDay(); 
+            isRunning = true; 
+            timeRemaining = currentFocusDuration * 60;
+            focusIntegrity = 100;
+            recoveryCountdown = 0;
+            
+            state.currentStatus = 'Studying';
             document.getElementById('cheat-indicator').style.display = 'block';
+            document.getElementById('integrity-text').style.display = 'block';
+            document.getElementById('integrity-text').innerText = `专注完整度: 100%`;
+            
+            state.lastHeartbeatTime = Date.now();
             saveState(); updateUI();
             runTimerLoop();
         }
 
         function runTimerLoop() {
+            // 彻底清理历史时钟
+            clearInterval(timerInterval);
+            clearInterval(heartbeatInterval);
+
+            // 100ms 高频生命心跳
+            heartbeatInterval = setInterval(() => {
+                if (isRunning && !document.hidden) {
+                    state.lastHeartbeatTime = Date.now();
+                }
+            }, 100);
+
+            // 1秒业务倒计时
             timerInterval = setInterval(() => {
+                // 每秒检测跨天
+                if (getTodayStr() !== state.lastDate) { checkNewDay(); updateUI(); }
+
                 if (timeRemaining > 0) {
                     timeRemaining--;
-                    
-                    // 戴罪立功后台心跳监测
-                    if (calmDownCountdown > 0) {
-                        calmDownCountdown--;
-                        if (calmDownCountdown === 0) {
-                            // 顺利坚持满1分钟，触发傲娇原谅机制
-                            state.currentStatus = 'forgiven';
+
+                    // 戴罪立功计时器消减
+                    if (state.currentStatus === 'Recovering' && recoveryCountdown > 0) {
+                        recoveryCountdown--;
+                        if (recoveryCountdown <= 0) {
+                            state.currentStatus = 'Studying';
+                            document.getElementById('pet-msg').innerText = nanaStates.Forgiven.text;
+                            document.getElementById('pet-img').src = nanaStates.Forgiven.img;
                             saveState();
-                            updateUI();
                         }
                     }
 
                     let mins = Math.floor(timeRemaining / 60), secs = Math.floor(timeRemaining % 60);
                     document.getElementById('timer-text').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-                } else { completeFocus(); }
+                } else { 
+                    completeFocus(); 
+                }
             }, 1000);
         }
 
-        function completeFocus() {
-            clearInterval(timerInterval); isRunning = false;
-            calmDownCountdown = 0;
-            document.getElementById('cheat-indicator').style.display = 'none';
-            if (state.isLocked) {
-                state.isLocked = false; state.currentStatus = 'defaultState'; state.iceCreams = Math.max(0, state.iceCreams - 1.0); 
-                alert("🧘‍♂️ 面壁完成！你重获自由！");
+        // 依据离开时长削减完整度系数
+        function applyIntegrityDeduction(bgSeconds) {
+            if (bgSeconds <= 30) focusIntegrity = Math.max(10, focusIntegrity - 0);
+            else if (bgSeconds <= 120) focusIntegrity = Math.max(10, focusIntegrity - 15);
+            else if (bgSeconds <= 300) focusIntegrity = Math.max(10, focusIntegrity - 30);
+            else focusIntegrity = Math.max(10, focusIntegrity - 50);
+            document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
+        }
+
+        // 核心对账算法：精准捕获切屏与锁屏熄屏
+        function handleVisibilityChange() {
+            if (!isRunning || state.isLocked) return;
+
+            if (document.hidden) { 
+                state.leaveTime = Date.now(); 
+                saveState();
+            } else if (state.leaveTime > 0) {
+                let now = Date.now();
+                let backgroundSeconds = Math.round((now - state.leaveTime) / 1000);
+                let heartbeatDiff = state.leaveTime - state.lastHeartbeatTime;
+                state.leaveTime = 0; 
+
+                if (backgroundSeconds <= 0) return;
+
+                // 更新全局统计看板
+                state.todayBackgroundCount++;
+                state.todayBackgroundSeconds += backgroundSeconds;
+
+                // 暂止主计时器，切入 Warning 庭审挂起状态
+                clearInterval(timerInterval);
+                clearInterval(heartbeatInterval);
+                state.currentStatus = 'Warning';
+                saveState(); updateUI();
+
+                // 智能可信度评分（星级评分制）
+                let confidenceStars = calculateConfidence(backgroundSeconds, heartbeatDiff);
+
+                // 缓存现场对账包裹
+                pendingSettleData = {
+                    bgSeconds: backgroundSeconds,
+                    stars: confidenceStars,
+                    isSettleEarly: (backgroundSeconds >= timeRemaining) 
+                };
+
+                // 装填弹窗文案
+                let timeText = backgroundSeconds > 60 ? `${Math.floor(backgroundSeconds/60)}分${backgroundSeconds%60}秒` : `${backgroundSeconds}秒`;
+                document.getElementById('appeal-img').src = nanaStates.Warning.img;
+                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>！<br>综合判定可信度：<span style="color:#ff9800;font-weight:bold;">${confidenceStars}</span><br><br>请诚实选择刚刚的状态，拿拿会根据诚信完整度重新计算冰激凌奖励哦：`;
+                document.getElementById('appeal-modal').style.display = 'flex';
+            }
+        }
+
+        function calculateConfidence(elapsed, hbDiff) {
+            let score = 100;
+            if (hbDiff > 350) score -= 35; // 带有系统过渡动画延迟，切软件嫌疑重
+            if (elapsed > 300) score -= 25; // 离开时间过久
+            if (state.todayBackgroundCount > 10) score -= 15; // 频繁跳出
+            
+            if (score >= 80) return "⭐⭐⭐⭐⭐ 更像锁屏学习";
+            if (score >= 50) return "⭐⭐⭐⭐ 不确定";
+            return "⭐⭐ 更像切出去";
+        }
+
+        // 诚实协议法庭裁决
+        function resolveAppeal(choice) {
+            document.getElementById('appeal-modal').style.display = 'none';
+            if (!pendingSettleData) return;
+
+            let data = pendingSettleData;
+            pendingSettleData = null;
+
+            // 判定并触发扣减完整度
+            if (choice === 'phone') {
+                applyIntegrityDeduction(data.bgSeconds);
+                state.currentStatus = 'Recovering';
+                // 认罚后根据罪行挂钩戴罪立功时间
+                if (data.bgSeconds <= 30) recoveryCountdown = 30;
+                else if (data.bgSeconds <= 300) recoveryCountdown = 120;
+                else recoveryCountdown = 300;
             } else {
-                state.currentStatus = 'excited'; 
-                let earned = parseFloat(((currentFocusDuration / 60) * 5).toFixed(2));
-                state.iceCreams += earned; state.iceCreamsEarnedToday += earned;
-                state.todayFocusMinutes += currentFocusDuration; state.totalFocusMinutes += currentFocusDuration;
+                // 前四项豁免直接不扣分，维持Studying状态
+                state.currentStatus = 'Studying';
+                recoveryCountdown = 0;
+            }
+
+            // 处理结算分支
+            if (data.isSettleEarly) {
+                // 如果是提前学满，扣减时间归零，直接强制完结对账
+                timeRemaining = 0;
+                completeFocus();
+            } else {
+                // 自然消耗流逝时间，重连倒计时
+                timeRemaining = Math.max(1, timeRemaining - data.bgSeconds);
+                saveState(); updateUI();
+                runTimerLoop();
+            }
+        }
+
+        function completeFocus() {
+            clearInterval(timerInterval); clearInterval(heartbeatInterval);
+            isRunning = false; document.getElementById('cheat-indicator').style.display = 'none';
+            document.getElementById('integrity-text').style.display = 'none';
+
+            if (state.isLocked) {
+                state.isLocked = false; state.currentStatus = 'Idle'; state.iceCreams = Math.max(0, state.iceCreams - 1.0);
+                alert("🧘‍♂️ 恭喜通过硬核面壁！你已恢复自由身！");
+            } else {
+                state.currentStatus = 'Completed';
+                
+                // 收益挂钩专注完整度系数
+                let baseEarned = parseFloat(((currentFocusDuration / 60) * 5).toFixed(2));
+                let finalEarned = parseFloat((baseEarned * (focusIntegrity / 100)).toFixed(2));
+                
+                state.iceCreams += finalEarned;
+                state.todayFocusMinutes += currentFocusDuration;
+                state.totalFocusMinutes += currentFocusDuration;
+                
+                // 日志记录归档完整度
+                state.todayCompletedSessions++;
+                state.todayTotalIntegrity += focusIntegrity;
+
                 checkMilestone();
                 
-                document.getElementById('modal-reward-msg').innerText = `哇！这一节你超级棒，拿拿 已经在为你鼓掌了！\n本次成功斩获 ${earned} 🍦 冰激凌！`;
+                document.getElementById('modal-reward-msg').innerText = `哇！这一节你辛苦啦！\n本次由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你斩获发放 ${finalEarned} 🍦 冰激凌奖励！`;
                 document.getElementById('reward-modal').style.display = 'flex';
             }
+            
+            // 归位倒计时面板
             document.getElementById('timer-slider').value = currentFocusDuration;
-            document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
+            let mins = currentFocusDuration.toString().padStart(2,'0');
+            document.getElementById('timer-text').innerText = `${mins}:00`;
             saveState(); updateUI();
         }
 
         function closeRewardModal() {
             document.getElementById('reward-modal').style.display = 'none';
-            state.currentStatus = 'happy'; 
+            state.currentStatus = 'Idle'; 
             saveState(); updateUI();
         }
 
         function abortFocus() {
-            clearInterval(timerInterval); isRunning = false; document.getElementById('cheat-indicator').style.display = 'none';
-            calmDownCountdown = 0;
-            state.iceCreams = Math.max(0, state.iceCreams - 5.0); state.isLocked = true; state.currentStatus = 'sleeping';
-            document.getElementById('timer-slider').value = currentFocusDuration; document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
+            clearInterval(timerInterval); clearInterval(heartbeatInterval);
+            isRunning = false; document.getElementById('cheat-indicator').style.display = 'none';
+            document.getElementById('integrity-text').style.display = 'none';
+            
+            state.iceCreams = Math.max(0, state.iceCreams - 5.0); 
+            state.isLocked = true; 
+            state.currentStatus = 'Sleeping';
+            
+            document.getElementById('timer-slider').value = currentFocusDuration;
+            let mins = currentFocusDuration.toString().padStart(2,'0');
+            document.getElementById('timer-text').innerText = `${mins}:00`;
             saveState(); updateUI();
-        }
-
-        // ==================== 智能对账及切屏防误判申诉弹窗核心协议 ====================
-        function handleVisibilityChange() {
-            if (!isRunning || state.isLocked) return;
-            if (document.hidden) { 
-                lastBackgroundTime = new Date(); 
-            } else if (lastBackgroundTime) {
-                let elapsed = Math.round((new Date() - lastBackgroundTime) / 1000); 
-                lastBackgroundTime = null;
-                
-                if (elapsed <= 0) return;
-
-                // 省电熄屏结算
-                if (elapsed >= timeRemaining) {
-                    completeFocus();
-                    return;
-                }
-                
-                // 中途切回，暂停计时循环，交由弹窗裁决
-                clearInterval(timerInterval);
-                
-                let targetStatus = 'defaultState';
-                let potentialPenalty = 0;
-                
-                if (elapsed >= 300) { 
-                    targetStatus = 'crying'; potentialPenalty = 2.0;
-                } else if (elapsed >= 60) { 
-                    targetStatus = 'angry'; potentialPenalty = 1.0;
-                } else { 
-                    targetStatus = 'puzzled'; potentialPenalty = 0.2;
-                }
-
-                pendingDeduction = {
-                    status: targetStatus,
-                    penalty: potentialPenalty,
-                    secondsToSubtract: elapsed
-                };
-
-                let m = Math.floor(elapsed / 60), s = elapsed % 60;
-                let durationText = m > 0 ? `${m}分${s}秒` : `${s}秒`;
-                
-                document.getElementById('appeal-img').src = nanaStates[targetStatus].img;
-                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了 <span style="color:var(--purple);font-weight:bold;">${durationText}</span>！<br><br>如果是遭遇了不可抗力（如来电、系统熄屏、网络刷新），请选择绿色免罚；若确实开小差了，请诚实受罚扣除 <span style="color:#e53935;font-weight:bold;">${potentialPenalty} 🍦</span>。`;
-                document.getElementById('appeal-modal').style.display = 'flex';
-            }
-        }
-
-        // 弹窗裁决执行
-        function resolveAppeal(isInnocent) {
-            document.getElementById('appeal-modal').style.display = 'none';
-            
-            // 扣除自然流逝的时间
-            timeRemaining = Math.max(1, timeRemaining - pendingDeduction.secondsToSubtract);
-            
-            if (isInnocent) {
-                state.currentStatus = 'studying';
-                calmDownCountdown = 0; // 清白状态不需要消除CD
-            } else {
-                state.currentStatus = pendingDeduction.status;
-                state.iceCreams = Math.max(0, state.iceCreams - pendingDeduction.penalty);
-                // 认罚后，开启 60 秒“戴罪立功”观察期
-                calmDownCountdown = 60; 
-            }
-            
-            saveState();
-            updateUI();
-            
-            // 重新恢复主时钟循环
-            let mins = Math.floor(timeRemaining / 60), secs = Math.floor(timeRemaining % 60);
-            document.getElementById('timer-text').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-            runTimerLoop();
         }
 
         function startMeditation() { currentFocusDuration = 5; startFocus(); }
 
         function checkMilestone() {
-            if (state.todayFocusMinutes >= 360 && !state.rewarded6H) { state.rewarded6H = true; state.iceCreams += 2.0; state.iceCreamsEarnedToday += 2.0; alert("🎉 今日复习满 6 小时！额外奖励 2.0 🍦！"); }
-            if (state.todayFocusMinutes >= 480 && !state.rewarded8H) { state.rewarded8H = true; state.iceCreams += 3.0; state.iceCreamsEarnedToday += 3.0; alert("🎉 今日复习满 8 小时！额外奖励 3.0 🍦！"); }
-            if (state.todayFocusMinutes >= 600 && !state.rewarded10H) { state.rewarded10H = true; state.iceCreams += 5.0; state.iceCreamsEarnedToday += 5.0; alert("👑 今日修仙满 10 小时！额外狂揽 5.0 🍦！"); }
+            if (state.todayFocusMinutes >= 360 && !state.rewarded6H) { state.rewarded6H = true; state.iceCreams += 2.0; alert("🎉 今日复习满 6 小时！额外奖励 2.0 🍦！"); }
+            if (state.todayFocusMinutes >= 480 && !state.rewarded8H) { state.rewarded8H = true; state.iceCreams += 3.0; alert("🎉 今日复习满 8 小时！额外奖励 3.0 🍦！"); }
+            if (state.todayFocusMinutes >= 600 && !state.rewarded10H) { state.rewarded10H = true; state.iceCreams += 5.0; alert("👑 今日修仙满 10 小时！额外狂揽 5.0 🍦！"); }
         }
 
-        function buyEmergency(cost) { state.iceCreams -= cost; state.isLocked = false; state.currentStatus = 'defaultState'; saveState(); updateUI(); switchTab('view-focus', document.querySelectorAll('.tab-item')[0]); }
+        function buyEmergency(cost) { 
+            state.iceCreams -= cost; state.isLocked = false; state.currentStatus = 'Idle'; 
+            saveState(); updateUI(); 
+            switchTab('view-focus', document.querySelectorAll('.tab-item')[0]); 
+        }
+        
         function buyWish(type, cost) { state.iceCreams -= cost; state['count' + type]++; saveState(); updateUI(); }
         function saveNotes(val) { let today = getTodayStr(); state.dailyLogs[today] = val; saveState(); document.getElementById('review-status').innerText = val.trim() ? "已复盘" : "缺复盘"; document.getElementById('review-status').style.color = val.trim() ? "#4caf50" : "#ff9800"; }
 
@@ -630,15 +707,6 @@
                 }
             });
             if (count === 0) listEl.innerHTML = '<div style="color:#888; text-align:center; padding:5px;">暂无历史复盘。</div>';
-        }
-
-        function clearDayData() {
-            if(confirm("确定重置今日复习数值吗？（已保存的历史日志不会丢失，且会顺便解除锁机状态）")) {
-                let today = getTodayStr(); state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0; state.dailyLogs[today] = "";
-                state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
-                state.isLocked = false; state.currentStatus = 'defaultState'; calmDownCountdown = 0;
-                saveState(); updateUI(); updateDiaryView();
-            }
         }
 
         function updateDiaryView() {
