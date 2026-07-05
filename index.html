@@ -171,7 +171,6 @@
 </head>
 <body>
 
-    <!-- 全局一屏流顶栏 -->
     <div class="app-header">
         <div class="app-title" style="display: flex; align-items: center; gap: 6px;">
             <h1>NAong Focus</h1>
@@ -180,13 +179,12 @@
         <div class="global-balance">🍦 <span id="global-icecream">10.0</span></div>
     </div>
 
-    <!-- ==================== TAB 1: 极致放大大NAong专注页 ==================== -->
     <div id="view-focus" class="tab-view active">
         <div class="pet-panel-huge">
             <div class="pet-avatar-box">
                 <img id="pet-img" class="pet-avatar-img" src="https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg" alt="NAong">
             </div>
-            <div id="pet-msg" class="pet-text">📚 准备好开始今天的考研复习了吗？</div>
+            <div id="pet-msg" class="pet-text">📚 准备开始今天的学习了吗？NAong 已经帮你把书翻开啦！</div>
         </div>
 
         <div class="controls-box">
@@ -199,7 +197,6 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 2: 精紧凑独立跨天日志页 ==================== -->
     <div id="view-stats" class="tab-view">
         <div class="dashboard-grid">
             <div class="stat-card">
@@ -216,7 +213,6 @@
             <span id="milestone-tip">🎯 达标奖励还差: -- 分钟</span>
         </div>
 
-        <!-- 今日独立日志框 -->
         <div class="card-box">
             <div class="section-title" style="display:flex; justify-content:space-between;">
                 <span>📝 今日复盘日志 (<span id="review-status">缺复盘</span>)</span>
@@ -225,7 +221,6 @@
             <textarea id="notes-area" class="notes-editor" placeholder="在此记录今日努力……" oninput="saveNotes(this.value)"></textarea>
         </div>
 
-        <!-- 历史档案复合面板 -->
         <div class="card-box" style="flex: 1; min-height: 0; gap: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div class="section-title" id="diary-date" style="margin:0;">📖 NAong 的观察日志</div>
@@ -240,7 +235,6 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 3: 吸睛粉色心愿铺 ==================== -->
     <div id="view-shop" class="tab-view" style="padding-bottom: 2px;">
         <div class="section-title" style="color: #e53935; margin-bottom: 2px;">⚠️ 紧急赎身包</div>
         <div class="shop-card" style="border: 1px solid rgba(229,57,53,0.15); padding: 6px 12px;">
@@ -269,7 +263,6 @@
         </div>
     </div>
 
-    <!-- ==================== 专注完成礼包弹窗 (Modal) ==================== -->
     <div id="reward-modal" class="reward-modal">
         <img src="https://i.postimg.cc/brL43YLs/naong_excited.png.png" alt="Excited Naong">
         <h2 style="color: var(--purple); margin: 0 0 8px 0; font-size: 22px; font-weight: 800;">任务达成！</h2>
@@ -277,7 +270,6 @@
         <button onclick="closeRewardModal()" style="width: 60%; max-width: 200px; height: 44px; border-radius: 22px; border: none; background: var(--pink); color: white; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">领取奖励 🍦</button>
     </div>
 
-    <!-- 底部导航 -->
     <div class="tab-bar">
         <button class="tab-item active" onclick="switchTab('view-focus', this)"><span>🐾</span>专属陪伴</button>
         <button class="tab-item" onclick="switchTab('view-stats', this)"><span>📊</span>自习日志</button>
@@ -298,6 +290,7 @@
             isLocked: localStorage.getItem('isLocked') === 'true',
             currentStatus: localStorage.getItem('currentStatus') || 'defaultState',
             lastDate: localStorage.getItem('lastDate') || getTodayStr(),
+            todayVisitCount: parseInt(localStorage.getItem('todayVisitCount')) || 0,
             dailyLogs: {}, 
             countMilkTea: parseInt(localStorage.getItem('countMilkTea')) || 0,
             countChicken: parseInt(localStorage.getItem('countChicken')) || 0,
@@ -310,9 +303,9 @@
 
         try { state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {}; } catch(e) { state.dailyLogs = {}; }
 
-        // 精准绑定你给的 7 张图片，修复了多余的不可见字符
+        // 精准绑定情绪图片
         const NAongStates = {
-            defaultState: { text: "📚 准备好开始今天的考研复习了吗？", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" },
+            defaultState: { text: "📚 准备开始今天的学习了吗？NAong 已经帮你把书翻开啦！", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" },
             studying: { text: "✍️ 专注的你真好看，我会一直陪着你。", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" },
             puzzled: { text: "🤔 你刚刚是不是切出去了？NAong 动摇了……", img: "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" },
             angry: { text: "💢 警告：检测到你频繁退出 App！我要生气了！", img: "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg" },
@@ -324,7 +317,20 @@
 
         let timerInterval = null, isRunning = false, timeRemaining = 0, currentFocusDuration = 25, lastBackgroundTime = null;
 
-        function init() { checkNewDay(); updateUI(); calculateCountdown(); updateDiaryView(); document.addEventListener("visibilitychange", handleVisibilityChange); }
+        function init() { 
+            let isNew = checkNewDay(); 
+            if (!isNew) {
+                state.todayVisitCount = (parseInt(localStorage.getItem('todayVisitCount')) || 1) + 1;
+                saveState();
+            }
+            
+            setGreetingPool(); // 注入随机语料库
+            updateUI(); 
+            calculateCountdown(); 
+            updateDiaryView(); 
+            document.addEventListener("visibilitychange", handleVisibilityChange); 
+        }
+
         function saveState() { Object.keys(state).forEach(key => { if (typeof state[key] === 'object' && state[key] !== null) { localStorage.setItem(key, JSON.stringify(state[key])); } else { localStorage.setItem(key, state[key]); } }); }
         
         function checkNewDay() {
@@ -332,7 +338,32 @@
             if (state.lastDate !== today) {
                 state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0;
                 state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
-                state.lastDate = today; saveState();
+                state.todayVisitCount = 1;
+                state.lastDate = today;
+                saveState();
+                return true;
+            }
+            return false;
+        }
+
+        // 动态决策当前初始状态提示语库
+        function setGreetingPool() {
+            if (state.todayVisitCount <= 1) {
+                NAongStates.defaultState.text = "📚 准备开始今天的学习了吗？NAong 已经帮你把书翻开啦！";
+            } else {
+                const pool = [
+                    `👀 悄悄探头……你今天已经是第 ${state.todayVisitCount} 次打开我了，刚才是不是偷偷去刷短视频啦？`,
+                    `📱 频繁刷新可考不上研哦！老实交代，刚才去干嘛了？`,
+                    `✨ 欢迎回来！刚才去喝水还是去背政治/单词啦？休息好了就继续吧！`,
+                    `🐾 贴贴！看到你再次上线，NAong 就知道你没有放弃，我们继续冲！`,
+                    `⏳ 距离上岸的时间又少了一点点，别看手机了，快带我开启专注！`,
+                    `🔥 目标院校在向你招手！今天的复习进度条还空着呢，速速开始！`
+                ];
+                let randIndex = Math.floor(Math.random() * pool.length);
+                NAongStates.defaultState.text = pool[randIndex];
+            }
+            if (state.currentStatus === 'defaultState') {
+                document.getElementById('pet-msg').innerText = NAongStates.defaultState.text;
             }
         }
 
@@ -425,13 +456,12 @@
                 state.isLocked = false; state.currentStatus = 'defaultState'; state.iceCreams = Math.max(0, state.iceCreams - 1.0); 
                 alert("🧘‍♂️ 面壁完成！你重获自由！");
             } else {
-                state.currentStatus = 'excited'; // 全局背景图同步切换为兴奋
+                state.currentStatus = 'excited'; 
                 let earned = parseFloat(((currentFocusDuration / 60) * 5).toFixed(2));
                 state.iceCreams += earned; state.iceCreamsEarnedToday += earned;
                 state.todayFocusMinutes += currentFocusDuration; state.totalFocusMinutes += currentFocusDuration;
                 checkMilestone();
                 
-                // 触发华丽的高级粉色全屏仪式感弹窗
                 document.getElementById('modal-reward-msg').innerText = `哇！这一节你超级棒，Naong 已经在为你鼓掌了！\n本次成功斩获 ${earned} 🍦 冰激凌！`;
                 document.getElementById('reward-modal').style.display = 'flex';
             }
@@ -442,7 +472,7 @@
 
         function closeRewardModal() {
             document.getElementById('reward-modal').style.display = 'none';
-            state.currentStatus = 'happy'; // 关闭弹窗后切为开心日常状态
+            state.currentStatus = 'happy'; 
             saveState(); updateUI();
         }
 
