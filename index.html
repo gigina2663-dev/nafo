@@ -7,501 +7,101 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
-        :root {
-            --purple: #9c27b0;
-            --light-purple: #f3e5f5;
-            --pink: #ff6b9d;
-            --bg-gray: #f2f2f7;
-        }
+        :root { --purple: #9c27b0; --light-purple: #f3e5f5; --pink: #ff6b9d; --bg-gray: #f2f2f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        /* 强制全屏一屏流，严禁滚动 */
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
-            background: linear-gradient(135deg, #e8e0ff, #ffe2ec);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: #333;
-            padding: calc(8px + env(safe-area-inset-top)) 16px calc(65px + env(safe-area-inset-bottom)) 16px;
-            user-select: none;
-            -webkit-user-select: none;
-            overflow: hidden;
-        }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: linear-gradient(135deg, #e8e0ff, #ffe2ec); height: 100dvh; display: flex; flex-direction: column; color: #333; padding: env(safe-area-inset-top) 16px 0 16px; overflow: hidden; user-select: none; }
 
-        /* 紧凑顶栏 */
-        .app-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 36px;
-            margin-bottom: 4px;
-            flex-shrink: 0;
-        }
-        .app-title h1 { margin: 0; font-size: 18px; color: var(--purple); font-weight: 800; letter-spacing: -0.5px; }
-        .countdown-tag {
-            background: rgba(229, 57, 53, 0.08); color: #e53935;
-            font-size: 10px; font-weight: bold; padding: 1px 5px; border-radius: 5px;
-            display: inline-block;
-        }
-        .global-balance {
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(5px);
-            padding: 3px 10px; border-radius: 12px;
-            font-weight: bold; color: var(--purple); font-size: 12px;
-        }
+        /* 顶部导航 */
+        .app-header { display: flex; justify-content: space-between; align-items: center; height: 40px; flex-shrink: 0; }
+        .app-title h1 { margin: 0; font-size: 17px; color: var(--purple); font-weight: 800; }
+        .global-balance { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(5px); padding: 4px 12px; border-radius: 12px; font-weight: bold; color: var(--purple); font-size: 13px; }
 
-        /* 页面视图核心路由容器（一屏流核心：不可产生滚动条） */
-        .tab-view { display: none; flex: 1; flex-direction: column; width: 100%; min-height: 0; overflow: hidden; }
+        /* 核心布局 */
+        .tab-view { display: none; flex: 1; flex-direction: column; min-height: 0; }
         .tab-view.active { display: flex; }
 
-        /* ==================== TAB 1: 极致放大大NAong专注页 ==================== */
-        #view-focus { display: none; flex-direction: column; height: 100%; justify-content: space-between; }
-        #view-focus.active { display: flex; }
-        
-        /* NAong 视觉 C 位，霸占所有剩余空间 */
-        .pet-panel-huge {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 0;
-            gap: 4px;
-            padding: 4px 0;
-        }
-        .pet-avatar-box { 
-            width: 70vw;
-            height: 70vw;
-            max-width: 40vh;
-            max-height: 40vh;
-            border-radius: 50%; /* 改为超可爱的大圆形，视觉上显得更大 */
-            overflow: hidden; 
-            box-shadow: 0 10px 30px rgba(156, 39, 176, 0.15); 
-            background: #fff;
-            border: 4px solid rgba(255,255,255,0.9);
-            transition: all 0.3s ease;
-        }
+        /* TAB 1: NAong 核心页 */
+        .pet-panel-huge { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0; }
+        .pet-avatar-box { width: 75vw; height: 75vw; max-width: 320px; max-height: 320px; border-radius: 50%; overflow: hidden; box-shadow: 0 10px 30px rgba(156, 39, 176, 0.2); background: #fff; border: 5px solid white; }
         .pet-avatar-img { width: 100%; height: 100%; object-fit: cover; }
-        .pet-text { font-size: 13px; font-weight: 600; color: #444; text-align: center; max-width: 90%; min-height: 18px; line-height: 1.3; margin-top: 4px; }
-        
-        /* 极窄扁平化控制台：保留滑块，极致压榨空间 */
-        .controls-box { 
-            width: 100%; 
-            background: rgba(255,255,255,0.45); 
-            backdrop-filter: blur(10px); 
-            border-radius: 16px; 
-            padding: 8px 14px; 
-            border: 1px solid rgba(255,255,255,0.3); 
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .timer-display { font-size: 32px; font-weight: 800; font-family: monospace; color: var(--purple); text-align: center; line-height: 1; }
-        .cheat-warning { font-size: 10px; color: #e53935; font-weight: bold; text-align: center; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        
-        .slider { width: 100%; margin: 2px 0; accent-color: var(--purple); height: 14px; }
-        
-        .main-btn {
-            width: 100%; height: 40px; border-radius: 20px; border: none; color: white; font-size: 14px; font-weight: bold;
-            background: var(--purple); box-shadow: 0 3px 10px rgba(156, 39, 176, 0.2); transition: all 0.2s ease;
-        }
-        .main-btn:active { transform: scale(0.98); }
-        .main-btn.abort { background: #e53935; box-shadow: 0 3px 10px rgba(229, 57, 53, 0.2); }
-        .runaway-btns { display: flex; gap: 8px; width: 100%; }
-        .btn-runaway-shop { background: var(--purple); color: white; flex: 1; height: 38px; border: none; border-radius: 19px; font-weight: bold; font-size: 12px; }
-        .btn-runaway-med { background: rgba(156, 39, 176, 0.12); color: var(--purple); flex: 1; height: 38px; border: none; border-radius: 19px; font-weight: bold; font-size: 12px; }
+        .pet-text { font-size: 13px; font-weight: 600; color: #444; margin-top: 15px; text-align: center; }
 
-        /* ==================== TAB 2 & TAB 3 一屏流紧凑排布 ==================== */
-        .dashboard-grid { display: flex; gap: 8px; margin-bottom: 6px; flex-shrink: 0; }
-        .stat-card { flex: 1; background: rgba(255, 255, 255, 0.6); padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); }
-        .stat-card div:first-child { font-size: 10px; color: #666; font-weight: 600; }
-        .stat-card div:last-child { font-size: 14px; font-weight: bold; color: var(--purple); }
-        
-        .card-box { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 14px; padding: 10px; margin-bottom: 6px; border: 1px solid rgba(255,255,255,0.3); min-height: 0; display: flex; flex-direction: column; }
-        .section-title { font-size: 11px; font-weight: 700; color: #777; margin: 0 0 4px 2px; text-transform: uppercase; }
-        
-        /* 压缩输入框高度，给整体腾出空间 */
-        .notes-editor { width: 100%; height: 75px; border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; padding: 6px 8px; font-size: 12px; resize: none; outline: none; background: white; line-height: 1.3; }
-        .diary-speech-box { background: white; padding: 8px 10px; border-radius: 10px; font-size: 12px; line-height: 1.4; color: #444; border: 1px solid rgba(0,0,0,0.02); flex: 1; overflow-y: auto; }
+        .controls-box { width: 100%; background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); border-radius: 20px; padding: 15px; margin-bottom: calc(55px + env(safe-area-inset-bottom)); border: 1px solid rgba(255,255,255,0.3); }
+        .timer-display { font-size: 32px; font-weight: 800; color: var(--purple); text-align: center; }
+        .slider { width: 100%; height: 4px; accent-color: var(--purple); margin: 10px 0; }
+        .main-btn { width: 100%; height: 45px; border-radius: 22px; border: none; color: white; background: var(--purple); font-weight: bold; }
 
-        /* 历史日志微型槽 */
-        .history-container { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-        .history-log-item { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px dashed rgba(0,0,0,0.05); font-size: 11px; }
-
-        /* 商店调色：可兑换变成少女粉 */
-        .shop-list-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-bottom: 4px; }
-        .shop-card { background: rgba(255,255,255,0.6); padding: 8px 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
-        .shop-item-info h4 { margin: 0; font-size: 13px; color: #1c1c1e; font-weight: 700; }
-        .shop-item-info p { margin: 1px 0 0 0; font-size: 10px; color: #777; }
-        
-        .btn-exchange { 
-            background: var(--pink); color: white; border: none; padding: 5px 12px; border-radius: 8px; 
-            font-size: 11px; font-weight: bold; transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(255, 107, 157, 0.15);
-        }
-        .btn-exchange:disabled { background: #d1d1d6; color: #aeaeae; box-shadow: none; }
-
-        /* iOS 底部模糊导航 */
-        .tab-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: calc(48px + env(safe-area-inset-bottom));
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(0, 0, 0, 0.08);
-            display: flex;
-            padding-bottom: env(safe-area-inset-bottom);
-            z-index: 999;
-        }
-        .tab-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: none; border: none; color: #8e8e93; font-size: 9px; font-weight: 500; gap: 1px;
-        }
-        .tab-item.active { color: var(--purple); font-weight: 700; }
-        .tab-item span { font-size: 16px; }
+        /* 其他页面样式 */
+        .card-box { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); border-radius: 14px; padding: 12px; margin-bottom: 8px; }
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(50px + env(safe-area-inset-bottom)); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.05); display: flex; padding-bottom: env(safe-area-inset-bottom); z-index: 1000; }
+        .tab-item { flex: 1; border: none; background: none; color: #8e8e93; font-size: 10px; font-weight: 600; }
+        .tab-item.active { color: var(--purple); }
     </style>
 </head>
 <body>
 
-    <!-- 全局一屏流顶栏 -->
     <div class="app-header">
-        <div class="app-title" style="display: flex; align-items: center; gap: 6px;">
-            <h1>NAong Focus</h1>
-            <div id="countdown-day" class="countdown-tag">🎯 计算中</div>
-        </div>
+        <div class="app-title"><h1>NAong Focus</h1></div>
         <div class="global-balance">🍦 <span id="global-icecream">10.0</span></div>
     </div>
 
-    <!-- ==================== TAB 1: 极致放大大NAong专注页 ==================== -->
     <div id="view-focus" class="tab-view active">
         <div class="pet-panel-huge">
             <div class="pet-avatar-box">
-                <img id="pet-img" class="pet-avatar-img" src="https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" alt="NAong">
+                <img id="pet-img" class="pet-avatar-img" src="https://i.postimg.cc/sXL0Ydv7/naong-default.jpg">
             </div>
             <div id="pet-msg" class="pet-text">📚 准备好开始今天的考研复习了吗？</div>
         </div>
-
         <div class="controls-box">
             <div id="timer-text" class="timer-display">25 分钟</div>
-            <div id="cheat-indicator" class="cheat-warning" style="display:none;">⏳ 智能防作弊监控中...</div>
             <input type="range" id="timer-slider" class="slider" min="5" max="120" step="5" value="25" oninput="updateSlider(this.value)">
-            <div id="button-container">
-                <button id="action-btn" class="main-btn" onclick="handleMainAction()">开启锁机专注 (25分钟)</button>
-            </div>
+            <button id="action-btn" class="main-btn" onclick="handleMainAction()">开启锁机专注 (25分钟)</button>
         </div>
     </div>
 
-    <!-- ==================== TAB 2: 精紧凑独立跨天日志页 ==================== -->
-    <div id="view-stats" class="tab-view">
-        <div class="dashboard-grid">
-            <div class="stat-card">
-                <div>☀️ 今日复习</div>
-                <div id="today-time">0.0 分钟</div>
-            </div>
-            <div class="stat-card">
-                <div>⏱️ 总累计</div>
-                <div id="total-time">0.0 分钟</div>
-            </div>
-        </div>
-        
-        <div class="card-box" style="text-align: center; padding: 4px; font-size: 11px; font-weight: bold; color: var(--purple);">
-            <span id="milestone-tip">🎯 达标奖励还差: -- 分钟</span>
-        </div>
-
-        <!-- 今日独立日志框 -->
-        <div class="card-box">
-            <div class="section-title" style="display:flex; justify-content:space-between;">
-                <span>📝 今日复盘日志 (<span id="review-status">缺复盘</span>)</span>
-                <span onclick="clearDayData()" style="color:#e53935; cursor:pointer; font-weight:bold;">🧼 重置数值</span>
-            </div>
-            <textarea id="notes-area" class="notes-editor" placeholder="在此记录今日努力……" oninput="saveNotes(this.value)"></textarea>
-        </div>
-
-        <!-- 历史档案 & NAong日志复合面板（确保一屏流不超高） -->
-        <div class="card-box" style="flex: 1; min-height: 0; gap: 4px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="section-title" id="diary-date" style="margin:0;">📖 NAong 的观察日志</div>
-                <button id="toggle-history-btn" style="background:none; border:none; color:var(--purple); font-size:10px; font-weight:bold; padding:0;" onclick="toggleHistory()">📅 切换历史档案</button>
-            </div>
-            
-            <!-- 默认显示NAong日志 -->
-            <div id="diary-whisper" class="diary-speech-box">今天书本落了灰，NAong 好寂寞。快带我开启专注呀！</div>
-            
-            <!-- 历史档案展示槽（默认隐藏） -->
-            <div id="history-box" class="history-container" style="display:none;">
-                <div id="history-list" style="flex:1; overflow-y: auto;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== TAB 3: 吸睛粉色心愿铺 ==================== -->
-    <div id="view-shop" class="tab-view" style="padding-bottom: 2px;">
-        <div class="section-title" style="color: #e53935; margin-bottom: 2px;">⚠️ 紧急赎身包</div>
-        <div class="shop-card" style="border: 1px solid rgba(229,57,53,0.15); padding: 6px 12px;">
-            <div class="shop-item-info"><h4>🥖 充饥面包 [秒解锁]</h4><p>扣除 3H 成果重获自由</p></div>
-            <button class="btn-exchange" style="background:#e53935; box-shadow:0 2px 4px rgba(229,57,53,0.15);" onclick="buyEmergency(15)">15 🍦</button>
-        </div>
-        
-        <div class="section-title" style="margin-top: 4px; margin-bottom: 2px;">🎁 自律心愿单 (有钱即亮起元气粉)</div>
-        <div class="shop-list-container">
-            <div class="shop-card">
-                <div class="shop-item-info"><h4>🧋 买一杯喜欢的饮料</h4><p>累计已兑: <span id="cnt-m">0</span> 次</p></div>
-                <button class="btn-exchange" onclick="buyWish('MilkTea', 200)">200 🍦</button>
-            </div>
-            <div class="shop-card">
-                <div class="shop-item-info"><h4>🍗 吃一顿喜欢的大餐</h4><p>累计已兑: <span id="cnt-c">0</span> 次</p></div>
-                <button class="btn-exchange" onclick="buyWish('Chicken', 500)">500 🍦</button>
-            </div>
-            <div class="shop-card">
-                <div class="shop-item-info"><h4>🧸 垂涎已久的小玩意儿</h4><p>累计已兑: <span id="cnt-t">0</span> 次</p></div>
-                <button class="btn-exchange" onclick="buyWish('Toy', 1000)">1000 🍦</button>
-            </div>
-            <div class="shop-card">
-                <div class="shop-item-info"><h4>👚 终极上岸愿望基金</h4><p>累计已兑: <span id="cnt-cl">0</span> 次</p></div>
-                <button class="btn-exchange" onclick="buyWish('Clothes', 2500)">2500 🍦</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 底部导航 -->
     <div class="tab-bar">
-        <button class="tab-item active" onclick="switchTab('view-focus', this)"><span>🐾</span>专属陪伴</button>
-        <button class="tab-item" onclick="switchTab('view-stats', this)"><span>📊</span>自习日志</button>
-        <button class="tab-item" onclick="switchTab('view-shop', this)"><span>🛒</span>冰激凌铺</button>
+        <button class="tab-item active" onclick="switchTab('view-focus', this)">🐾 专属陪伴</button>
+        <button class="tab-item" onclick="switchTab('view-stats', this)">📊 自习日志</button>
+        <button class="tab-item" onclick="switchTab('view-shop', this)">🛒 冰激凌铺</button>
     </div>
 
     <script>
-        function getTodayStr() {
-            let d = new Date();
-            return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
-        }
-
-        let state = {
-            iceCreams: parseFloat(localStorage.getItem('iceCreams')) || 10.0,
-            totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
-            todayFocusMinutes: parseFloat(localStorage.getItem('todayFocusMinutes')) || 0.0,
-            iceCreamsEarnedToday: parseFloat(localStorage.getItem('iceCreamsEarnedToday')) || 0.0,
-            isLocked: localStorage.getItem('isLocked') === 'true',
-            currentStatus: localStorage.getItem('currentStatus') || 'defaultState',
-            lastDate: localStorage.getItem('lastDate') || getTodayStr(),
-            dailyLogs: {}, 
-            countMilkTea: parseInt(localStorage.getItem('countMilkTea')) || 0,
-            countChicken: parseInt(localStorage.getItem('countChicken')) || 0,
-            countToy: parseInt(localStorage.getItem('countToy')) || 0,
-            countClothes: parseInt(localStorage.getItem('countClothes')) || 0,
-            rewarded6H: localStorage.getItem('rewarded6H') === 'true',
-            rewarded8H: localStorage.getItem('rewarded8H') === 'true',
-            rewarded10H: localStorage.getItem('rewarded10H') === 'true'
-        };
-
-        try { state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {}; } catch(e) { state.dailyLogs = {}; }
-
+        // 核心情绪映射逻辑
         const NAongStates = {
             defaultState: { text: "📚 准备好开始今天的考研复习了吗？", img: "https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" },
-            studying: { text: "✍️ 专注的你真好看，我会一直陪着你。", img: "https://i.postimg.cc/prnckGFm/naong-studying.jpg" },
-            puzzled: { text: "🤔 你刚刚是不是切出去了？NAong 动摇了……", img: "https://i.postimg.cc/hjY3LWf9/naong-puzzled.jpg" },
-            angry: { text: "💢 警告：检测到你频繁退出 App！我要生气了！", img: "https://i.postimg.cc/C126GTzC/naong-angry.jpg" },
-            crying: { text: "😭 你竟然在专注期间跑去玩别的软件，我好伤心……", img: "https://i.postimg.cc/gJ7BVFnZ/naong-crying.jpg" },
-            sleeping: { text: "💤 离家出走中！去商店氪金面包，或者肉身面壁5分钟！", img: "https://i.postimg.cc/RFYb75N7/naong-sleeping.jpg" },
-            happy: { text: "🍦 太棒啦！完成了目标，这是奖励你的冰激凌！", img: "https://i.postimg.cc/sXL0Ydv7/naong-default.jpg" }
+            excited: { text: "🎉 任务达成！Naong 兴奋地为你鼓掌！", img: "https://i.postimg.cc/brL43YLs/naong_excited.png.png" },
+            happy: { text: "🍦 太棒啦！继续保持，这是奖励你的冰激凌！", img: "https://i.postimg.cc/Vvz3q09t/naong_happy.png.jpg" },
+            calm: { text: "✍️ 专注的你真好看，我会一直陪着你。", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" },
+            angry: { text: "💢 警告：不要切屏，Naong 要生气了！", img: "https://i.postimg.cc/kGwLfMw4/naong_angry.png⁠.jpg" },
+            sad: { text: "😭 你中途放弃了，我好伤心……", img: "https://i.postimg.cc/3N9znr9w/naong_sad.png.jpg" },
+            disappointed: { text: "😞 今日进度落后，快振作起来呀！", img: "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png⁠.jpg" },
+            punished: { text: "💤 离家出走中！快回来呀！", img: "https://i.postimg.cc/901sJX1z/naong_punished.png⁠.jpg" }
         };
 
-        let timerInterval = null, isRunning = false, timeRemaining = 0, currentFocusDuration = 25, lastBackgroundTime = null;
-
-        function init() { checkNewDay(); updateUI(); calculateCountdown(); updateDiaryView(); document.addEventListener("visibilitychange", handleVisibilityChange); }
-        function saveState() { Object.keys(state).forEach(key => { if (typeof state[key] === 'object' && state[key] !== null) { localStorage.setItem(key, JSON.stringify(state[key])); } else { localStorage.setItem(key, state[key]); } }); }
-        
-        function checkNewDay() {
-            let today = getTodayStr();
-            if (state.lastDate !== today) {
-                state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0;
-                state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
-                state.lastDate = today; saveState();
-            }
-        }
-
         function switchTab(tabId, element) {
-            document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
-            document.querySelectorAll('.tab-item').forEach(item => item.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active'); element.classList.add('active');
-            if (tabId === 'view-stats') { updateDiaryView(); }
-        }
-
-        function updateUI() {
-            document.getElementById('global-icecream').innerText = Number(state.iceCreams).toFixed(1);
-            document.getElementById('today-time').innerText = state.todayFocusMinutes.toFixed(1) + " 分";
-            document.getElementById('total-time').innerText = state.totalFocusMinutes.toFixed(1) + " 分";
-            
-            let today = getTodayStr();
-            let todayNotes = state.dailyLogs[today] || '';
-            document.getElementById('notes-area').value = todayNotes;
-            
-            document.getElementById('cnt-m').innerText = state.countMilkTea;
-            document.getElementById('cnt-c').innerText = state.countChicken;
-            document.getElementById('cnt-t').innerText = state.countToy;
-            document.getElementById('cnt-cl').innerText = state.countClothes;
-            document.getElementById('review-status').innerText = todayNotes.trim() ? "已复盘" : "缺复盘";
-            document.getElementById('review-status').style.color = todayNotes.trim() ? "#4caf50" : "#ff9800";
-            
-            let cur = NAongStates[state.currentStatus];
-            document.getElementById('pet-img').src = cur.img;
-            document.getElementById('pet-msg').innerText = cur.text;
-
-            let sliderEl = document.getElementById('timer-slider');
-            let btnContainer = document.getElementById('button-container');
-
-            if (state.isLocked) {
-                sliderEl.disabled = true;
-                btnContainer.innerHTML = `<div class="runaway-btns">
-                    <button class="btn-runaway-shop" onclick="switchTab('view-shop', document.querySelectorAll('.tab-item')[2])">🛒 走捷径解锁</button>
-                    <button class="btn-runaway-med" onclick="startMeditation()">🧘‍♂️ 面壁5分钟</button>
-                </div>`;
-            } else {
-                sliderEl.disabled = isRunning;
-                if (isRunning) {
-                    btnContainer.innerHTML = `<button id="action-btn" class="main-btn abort" onclick="abortFocus()">强行放弃 (扣5.0🍦+锁机)</button>`;
-                } else {
-                    btnContainer.innerHTML = `<button id="action-btn" class="main-btn" onclick="handleMainAction()">开启锁机专注 (${currentFocusDuration}分钟)</button>`;
-                }
-            }
-
-            let tip = "";
-            if (state.todayFocusMinutes < 360) { tip = `🎯 离6H达标奖差: ${Math.ceil(360 - state.todayFocusMinutes)} 分钟`; }
-            else if (state.todayFocusMinutes < 480) { tip = `🔥 已拿6H奖！离8H差: ${Math.ceil(480 - state.todayFocusMinutes)} 分钟`; }
-            else if (state.todayFocusMinutes < 600) { tip = `🚀 已拿8H奖！离10H战神差: ${Math.ceil(600 - state.todayFocusMinutes)} 分钟`; }
-            else { tip = `👑 今日已通关10H战神大奖！`; }
-            document.getElementById('milestone-tip').innerText = tip;
-
-            let costs = [15, 200, 500, 1000, 2500];
-            document.querySelectorAll('#view-shop .btn-exchange').forEach((btn, idx) => {
-                btn.disabled = state.iceCreams < costs[idx];
-            });
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
         }
 
         function updateSlider(val) {
-            currentFocusDuration = parseInt(val);
             document.getElementById('timer-text').innerText = val + " 分钟";
-            let actionBtn = document.getElementById('action-btn');
-            if (actionBtn && !isRunning) { actionBtn.innerText = `开启锁机专注 (${val}分钟)`; }
+            document.getElementById('action-btn').innerText = `开启锁机专注 (${val}分钟)`;
         }
 
-        function handleMainAction() { if(!isRunning && !state.isLocked) { startFocus(); } }
-
-        function startFocus() {
-            checkNewDay(); isRunning = true; timeRemaining = currentFocusDuration * 60;
-            if(!state.isLocked) { state.currentStatus = 'studying'; }
-            document.getElementById('cheat-indicator').style.display = 'block';
-            saveState(); updateUI();
-            
-            timerInterval = setInterval(() => {
-                if (timeRemaining > 0) {
-                    timeRemaining--;
-                    let mins = Math.floor(timeRemaining / 60), secs = timeRemaining % 60;
-                    document.getElementById('timer-text').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-                } else { completeFocus(); }
-            }, 1000);
+        // 初始化时设置状态
+        function setStatus(stateKey) {
+            const status = NAongStates[stateKey];
+            document.getElementById('pet-img').src = status.img;
+            document.getElementById('pet-msg').innerText = status.text;
         }
-
-        function completeFocus() {
-            clearInterval(timerInterval); isRunning = false;
-            document.getElementById('cheat-indicator').style.display = 'none';
-            if (state.isLocked) {
-                state.isLocked = false; state.currentStatus = 'defaultState'; state.iceCreams = Math.max(0, state.iceCreams - 1.0); 
-                alert("🧘‍♂️ 面壁完成！你重获自由！");
-            } else {
-                state.currentStatus = 'happy';
-                let earned = parseFloat(((currentFocusDuration / 60) * 5).toFixed(2));
-                state.iceCreams += earned; state.iceCreamsEarnedToday += earned;
-                state.todayFocusMinutes += currentFocusDuration; state.totalFocusMinutes += currentFocusDuration;
-                checkMilestone();
-            }
-            document.getElementById('timer-slider').value = currentFocusDuration;
-            document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
-            saveState(); updateUI();
+        
+        // 专注结束触发兴奋状态
+        function triggerSuccess() {
+            setStatus('excited');
+            setTimeout(() => alert("🎉 任务达成！"), 500);
         }
-
-        function abortFocus() {
-            clearInterval(timerInterval); isRunning = false; document.getElementById('cheat-indicator').style.display = 'none';
-            state.iceCreams = Math.max(0, state.iceCreams - 5.0); state.isLocked = true; state.currentStatus = 'sleeping';
-            document.getElementById('timer-slider').value = currentFocusDuration; document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
-            saveState(); updateUI();
-        }
-
-        function handleVisibilityChange() {
-            if (!isRunning || state.isLocked) return;
-            if (document.hidden) { lastBackgroundTime = new Date(); } 
-            else if (lastBackgroundTime) {
-                let elapsed = (new Date() - lastBackgroundTime) / 1000; lastBackgroundTime = null;
-                if (elapsed < 10) { state.currentStatus = 'puzzled'; state.iceCreams = Math.max(0, state.iceCreams - 0.2); } 
-                else if (elapsed < 60) { state.currentStatus = 'angry'; state.iceCreams = Math.max(0, state.iceCreams - 0.5); } 
-                else if (elapsed < 300) { state.currentStatus = 'crying'; state.iceCreams = Math.max(0, state.iceCreams - 1.0); } 
-                else {
-                    clearInterval(timerInterval); isRunning = false; state.isLocked = true; state.currentStatus = 'sleeping';
-                    state.iceCreams = Math.max(0, state.iceCreams - 5.0); document.getElementById('cheat-indicator').style.display = 'none';
-                    document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
-                }
-                saveState(); updateUI();
-            }
-        }
-
-        function startMeditation() { currentFocusDuration = 5; startFocus(); }
-
-        function checkMilestone() {
-            if (state.todayFocusMinutes >= 360 && !state.rewarded6H) { state.rewarded6H = true; state.iceCreams += 2.0; state.iceCreamsEarnedToday += 2.0; alert("🎉 今日复习满 6 小时！额外奖励 2.0 🍦！"); }
-            if (state.todayFocusMinutes >= 480 && !state.rewarded8H) { state.rewarded8H = true; state.iceBreams = (parseFloat(state.iceCreams) + 3.0); state.iceCreams += 3.0; state.iceCreamsEarnedToday += 3.0; alert("🎉 今日复习满 8 小时！额外奖励 3.0 🍦！"); }
-            if (state.todayFocusMinutes >= 600 && !state.rewarded10H) { state.rewarded10H = true; state.iceCreams += 5.0; state.iceCreamsEarnedToday += 5.0; alert("👑 今日修仙满 10 小时！额外狂揽 5.0 🍦！"); }
-        }
-
-        function buyEmergency(cost) { state.iceCreams -= cost; state.isLocked = false; state.currentStatus = 'defaultState'; saveState(); updateUI(); switchTab('view-focus', document.querySelectorAll('.tab-item')[0]); }
-        function buyWish(type, cost) { state.iceCreams -= cost; state['count' + type]++; saveState(); updateUI(); }
-        function saveNotes(val) { let today = getTodayStr(); state.dailyLogs[today] = val; saveState(); document.getElementById('review-status').innerText = val.trim() ? "已复盘" : "缺复盘"; document.getElementById('review-status').style.color = val.trim() ? "#4caf50" : "#ff9800"; }
-
-        function toggleHistory() {
-            let diaryBox = document.getElementById('diary-whisper'); let historyBox = document.getElementById('history-box'); let btn = document.getElementById('toggle-history-btn');
-            if (historyBox.style.display === 'none') { historyBox.style.display = 'block'; diaryBox.style.display = 'none'; btn.innerText = '📖 切换观察日志'; renderHistory(); } 
-            else { historyBox.style.display = 'none'; diaryBox.style.display = 'block'; btn.innerText = '📅 切换历史档案'; }
-        }
-
-        function renderHistory() {
-            let listEl = document.getElementById('history-list'); listEl.innerHTML = '';
-            let keys = Object.keys(state.dailyLogs).sort().reverse(); let today = getTodayStr(), count = 0;
-            keys.forEach(k => {
-                if (k === today) return;
-                if (state.dailyLogs[k] && state.dailyLogs[k].trim()) {
-                    count++; let item = document.createElement('div'); item.className = 'history-log-item';
-                    item.innerHTML = `<strong style="color:var(--purple);">${k}</strong>: <span style="white-space:pre-wrap;">${state.dailyLogs[k]}</span>`;
-                    listEl.appendChild(item);
-                }
-            });
-            if (count === 0) listEl.innerHTML = '<div style="color:#888; text-align:center; padding:5px;">暂无历史复盘。</div>';
-        }
-
-        function clearDayData() {
-            if(confirm("确定重置今日复习数值吗？（已保存的历史日志不会丢失）")) {
-                let today = getTodayStr(); state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0; state.dailyLogs[today] = "";
-                state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false; saveState(); updateUI(); updateDiaryView();
-            }
-        }
-
-        function updateDiaryView() {
-            let now = new Date(); document.getElementById('diary-date').innerText = `📖 NAong 的观察日志 (${now.getMonth()+1}月${now.getDate()}日)`;
-            let txt = "今天书本落了灰，NAong 好寂寞。快带我开启专注呀！";
-            if (state.todayFocusMinutes >= 360) { txt = "🔥 天哪！她今天学了6个多小时！看着她拼尽全力的背影，NAong 崇拜得眼睛里全是星星！今年稳稳上岸！✨"; }
-            else if (state.todayFocusMinutes >= 60) { txt = "今天好开心！她一整天都在非常努力地复习，几乎没有碰手机。加油，一战成硕！♡"; }
-            else if (state.todayFocusMinutes > 0) { txt = "今天她有在学习哦，不过中途小小的看了一两次手机，明天要更专注呀！"; }
-            document.getElementById('diary-whisper').innerText = txt;
-        }
-
-        function calculateCountdown() {
-            let examDate = new Date("2026-12-26");
-            let diff = examDate - new Date();
-            let days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-            document.getElementById('countdown-day').innerText = days > 0 ? `🎯 距考研 ${days} 天` : "🎉 考研冲刺中！";
-        }
-
-        window.onload = init;
     </script>
 </body>
 </html>
