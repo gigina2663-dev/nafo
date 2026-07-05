@@ -171,7 +171,7 @@
         <div id="punish-ui" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
             <img src="https://i.postimg.cc/901sJX1z/naong_punished.png.jpg" style="width:130px; height:130px; border-radius:50%; margin-bottom:15px; border: 4px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.1);" alt="惩罚">
             <h2 style="color:#e53935; margin:0 0 10px 0; font-weight:800;">🔒 拿拿小黑屋禁闭中</h2>
-            <p style="color:#555; font-size:13px; margin:0 0 25px 0; font-weight:600; line-height:1.5;">由于你刚刚强行放弃了专注，拿拿现在正在生气睡觉。<br>请闭门思过，或者用冰激凌换面包赎身！</p>
+            <p style="color:#555; font-size:13px; margin:0 0 25px 0; font-weight:600; line-height:1.5;">由于 you 刚刚强行放弃了专注，拿拿现在正在生气睡觉。<br>请闭门思过，或者用冰激凌换面包赎身！</p>
             <div class="appeal-vertical-group">
                 <button class="btn-appeal-option honest" style="background:var(--purple); color:white; height:40px;" onclick="switchTab('view-shop', document.querySelectorAll('.tab-item')[2])">🛒 动用资产 去商店赎身</button>
                 <button class="btn-appeal-option" style="height:40px;" onclick="startMeditation()">🧘‍♂️ 强行面壁静思苦修 (5分钟)</button>
@@ -652,10 +652,6 @@
                 state.behaviorBuffer.push(currentItem);
                 state.leaveTime = 0; 
 
-                state.behaviorBuffer = state.behaviorBuffer.filter(item => {
-                    return (now - item.returnTime) <= 30 * 60 * 1000;
-                });
-
                 saveState();
                 analyzeBehaviorWindow();
             }
@@ -679,7 +675,7 @@
                 riskScore -= 2;
             }
 
-            // 规则②：最近30分钟退出频次
+            // 规则②：最近退出频次
             let exitCount = state.behaviorBuffer.length;
             if (exitCount === 2) riskScore += 2;
             else if (exitCount === 3) riskScore += 5;
@@ -705,7 +701,7 @@
                 riskScore = 0; 
             }
 
-            // 规则⑥：结合历史诚信度（trustScore）进行修正
+            // 规则⑥：结合历史诚信度进行修正
             if (state.trustScore >= 90) {
                 riskScore -= 2; 
             } else if (state.trustScore < 50) {
@@ -764,7 +760,17 @@
             document.getElementById('integrity-text').style.display = 'none';
 
             let now = Date.now();
-            let realElapsedMinutes = parseFloat(((now - state.focusStartTime) / 60000).toFixed(2));
+            let totalElapsedSeconds = (now - state.focusStartTime) / 1000;
+            
+            // 🔥【核心修正】累加当前专注周期里所有切屏离开的总秒数
+            let totalBgSecondsInSession = 0;
+            if (state.behaviorBuffer && state.behaviorBuffer.length > 0) {
+                totalBgSecondsInSession = state.behaviorBuffer.reduce((sum, item) => sum + (item.duration || 0), 0);
+            }
+            
+            // 真正拿到了脱水后的真实高效专注秒数
+            let trueFocusedSeconds = Math.max(0, totalElapsedSeconds - totalBgSecondsInSession);
+            let realElapsedMinutes = parseFloat((trueFocusedSeconds / 60).toFixed(2));
             
             if (state.currentStatus === 'Meditating' || state.isLocked) {
                 state.isLocked = false; state.currentStatus = 'Idle'; state.iceCreams = Math.max(0, state.iceCreams - 1.0);
@@ -786,7 +792,7 @@
 
                 checkMilestone();
                 
-                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌代币奖励！`;
+                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n(已全额扣除中途切屏闲逛时间)\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌代币奖励！`;
                 document.getElementById('reward-modal').style.display = 'flex';
                 
                 let sliderEl = document.getElementById('timer-slider');
