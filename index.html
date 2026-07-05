@@ -60,7 +60,7 @@
         #view-focus { display: none; flex-direction: column; height: 100%; justify-content: space-between; }
         #view-focus.active { display: flex; }
         
-        /* 拿拿 视觉 C 位：85vw 黄金自适应大圆框 */
+        /* 拿拿 视觉 C 位 */
         .pet-panel-huge {
             flex: 1;
             display: flex;
@@ -84,7 +84,7 @@
             transition: all 0.3s ease;
         }
         .pet-avatar-img { width: 100%; height: 100%; object-fit: cover; }
-        .pet-text { font-size: 13px; font-weight: 600; color: #444; text-align: center; max-width: 90%; min-height: 18px; line-height: 1.3; margin-top: 8px; }
+        .pet-text { font-size: 13px; font-weight: 600; color: #444; text-align: center; max-width: 90%; min-height: 36px; line-height: 1.4; margin-top: 8px; }
         
         /* 控制台 */
         .controls-box { 
@@ -142,13 +142,17 @@
         }
         .btn-exchange:disabled { background: #d1d1d6; color: #aeaeae; box-shadow: none; }
 
-        /* 专注结束全屏礼包弹窗 */
+        /* 专注结束全屏礼包与申诉弹窗结构 */
         .reward-modal {
-            display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.94);
+            display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.95);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 2000;
-            flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+            flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;
         }
-        .reward-modal img { width: 180px; height: 180px; border-radius: 50%; border: 4px solid white; box-shadow: 0 10px 25px rgba(156,39,176,0.15); object-fit: cover; margin-bottom: 15px; }
+        .reward-modal img { width: 160px; height: 160px; border-radius: 50%; border: 4px solid white; box-shadow: 0 10px 25px rgba(156,39,176,0.15); object-fit: cover; margin-bottom: 15px; }
+
+        .appeal-btn-group { display: flex; gap: 12px; width: 100%; max-width: 280px; margin-top: 15px; }
+        .btn-appeal-ok { flex: 1; height: 42px; border-radius: 21px; border: none; background: #4caf50; color: white; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(76,175,80,0.2); }
+        .btn-appeal-no { flex: 1; height: 42px; border-radius: 21px; border: none; background: #e53935; color: white; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(229,57,53,0.2); }
 
         /* 底部模糊导航 */
         .tab-bar {
@@ -199,7 +203,7 @@
         </div>
     </div>
 
-    <!-- ==================== TAB 2: 精紧凑独立跨天日志页 ==================== -->
+    <!-- ==================== TAB 2: 紧凑独立跨天日志页 ==================== -->
     <div id="view-stats" class="tab-view">
         <div class="dashboard-grid">
             <div class="stat-card">
@@ -277,6 +281,17 @@
         <button onclick="closeRewardModal()" style="width: 60%; max-width: 200px; height: 44px; border-radius: 22px; border: none; background: var(--pink); color: white; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">领取奖励 🍦</button>
     </div>
 
+    <!-- ==================== 智能对账及切屏防误判申诉弹窗 ==================== -->
+    <div id="appeal-modal" class="reward-modal">
+        <img id="appeal-img" src="https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" alt="Nana Disappointed">
+        <h2 style="color: var(--purple); margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">切屏防作弊协议</h2>
+        <p id="appeal-msg" style="color: #444; font-size: 13px; margin: 0 0 15px 0; font-weight: 600; line-height: 1.4; padding: 0 10px;"></p>
+        <div class="appeal-btn-group">
+            <button class="btn-appeal-ok" onclick="resolveAppeal(true)">我是清白的<br><span style="font-size:9px;font-weight:normal;">(来电/系统锁屏)</span></button>
+            <button class="btn-appeal-no" onclick="resolveAppeal(false)">我认罚<br><span style="font-size:9px;font-weight:normal;">(去开小差了)</span></button>
+        </div>
+    </div>
+
     <!-- 底部导航 -->
     <div class="tab-bar">
         <button class="tab-item active" onclick="switchTab('view-focus', this)"><span>🐾</span>专属陪伴</button>
@@ -320,10 +335,15 @@
             crying: { text: "😭 太失望了，你居然切出去玩了 5 分钟以上！重罚扣除 2.0 🍦！", img: "https://i.postimg.cc/3N9znr9w/naong_sad.png.jpg" },
             sleeping: { text: "💤 离家出走中！去商店氪金面包，或者肉身面壁5分钟！", img: "https://i.postimg.cc/901sJX1z/naong_punished.png.jpg" },
             happy: { text: "🍦 太棒啦！完成了目标，这是奖励你的冰激凌！", img: "https://i.postimg.cc/Vvz3q09t/naong_happy.png.jpg" },
-            excited: { text: "🎉 又离上岸更近一步，兴奋到转圈圈啦！", img: "https://i.postimg.cc/brL43YLs/naong_excited.png.png" }
+            excited: { text: "🎉 又离上岸更近一步，兴奋到转圈圈啦！", img: "https://i.postimg.cc/brL43YLs/naong_excited.png.png" },
+            forgiven: { text: "哼，看在你重新坐回书桌前这么认真的份上，拿拿就原谅你啦！不许再乱跑了哦，继续冲！", img: "https://i.postimg.cc/brqKxS0k/naong_calm.png.jpg" }
         };
 
         let timerInterval = null, isRunning = false, timeRemaining = 0, currentFocusDuration = 25, lastBackgroundTime = null;
+        let pendingDeduction = { status: '', penalty: 0, secondsToSubtract: 0 };
+        
+        // 戴罪立功核心计时变量 (秒数)
+        let calmDownCountdown = 0; 
 
         function init() { 
             let isNew = checkNewDay(); 
@@ -443,14 +463,30 @@
 
         function startFocus() {
             checkNewDay(); isRunning = true; timeRemaining = currentFocusDuration * 60;
+            calmDownCountdown = 0; // 重置消除CD
             if(!state.isLocked) { state.currentStatus = 'studying'; }
             document.getElementById('cheat-indicator').style.display = 'block';
             saveState(); updateUI();
-            
+            runTimerLoop();
+        }
+
+        function runTimerLoop() {
             timerInterval = setInterval(() => {
                 if (timeRemaining > 0) {
                     timeRemaining--;
-                    let mins = Math.floor(timeRemaining / 60), secs = timeRemaining % 60;
+                    
+                    // 戴罪立功后台心跳监测
+                    if (calmDownCountdown > 0) {
+                        calmDownCountdown--;
+                        if (calmDownCountdown === 0) {
+                            // 顺利坚持满1分钟，触发傲娇原谅机制
+                            state.currentStatus = 'forgiven';
+                            saveState();
+                            updateUI();
+                        }
+                    }
+
+                    let mins = Math.floor(timeRemaining / 60), secs = Math.floor(timeRemaining % 60);
                     document.getElementById('timer-text').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
                 } else { completeFocus(); }
             }, 1000);
@@ -458,6 +494,7 @@
 
         function completeFocus() {
             clearInterval(timerInterval); isRunning = false;
+            calmDownCountdown = 0;
             document.getElementById('cheat-indicator').style.display = 'none';
             if (state.isLocked) {
                 state.isLocked = false; state.currentStatus = 'defaultState'; state.iceCreams = Math.max(0, state.iceCreams - 1.0); 
@@ -485,46 +522,82 @@
 
         function abortFocus() {
             clearInterval(timerInterval); isRunning = false; document.getElementById('cheat-indicator').style.display = 'none';
+            calmDownCountdown = 0;
             state.iceCreams = Math.max(0, state.iceCreams - 5.0); state.isLocked = true; state.currentStatus = 'sleeping';
             document.getElementById('timer-slider').value = currentFocusDuration; document.getElementById('timer-text').innerText = currentFocusDuration + " 分钟";
             saveState(); updateUI();
         }
 
-        // ==================== 智能对账省电防作弊核心引擎 ====================
+        // ==================== 智能对账及切屏防误判申诉弹窗核心协议 ====================
         function handleVisibilityChange() {
             if (!isRunning || state.isLocked) return;
             if (document.hidden) { 
                 lastBackgroundTime = new Date(); 
             } else if (lastBackgroundTime) {
-                let elapsed = (new Date() - lastBackgroundTime) / 1000; 
+                let elapsed = Math.round((new Date() - lastBackgroundTime) / 1000); 
                 lastBackgroundTime = null;
                 
-                // 核心对账 1：离开的总时间已经超过或等于剩余所需专注时间 -> 判定为省电熄屏学满结算
+                if (elapsed <= 0) return;
+
+                // 省电熄屏结算
                 if (elapsed >= timeRemaining) {
                     completeFocus();
                     return;
                 }
                 
-                // 核心对账 2：离开时间少于剩余时间 -> 铁证如山，属于中途切出去开小差抓包
+                // 中途切回，暂停计时循环，交由弹窗裁决
+                clearInterval(timerInterval);
+                
+                let targetStatus = 'defaultState';
+                let potentialPenalty = 0;
+                
                 if (elapsed >= 300) { 
-                    // 离开 5 分钟及以上 -> 扣 2 个冰激凌
-                    state.currentStatus = 'crying';
-                    state.iceCreams = Math.max(0, state.iceCreams - 2.0);
-                    timeRemaining = Math.max(1, timeRemaining - elapsed); 
+                    targetStatus = 'crying'; potentialPenalty = 2.0;
                 } else if (elapsed >= 60) { 
-                    // 离开 1 分钟及以上 -> 扣 1 个冰激凌
-                    state.currentStatus = 'angry';
-                    state.iceCreams = Math.max(0, state.iceCreams - 1.0);
-                    timeRemaining = Math.max(1, timeRemaining - elapsed);
+                    targetStatus = 'angry'; potentialPenalty = 1.0;
                 } else { 
-                    // 1 分钟内的微小误触或秒回 -> 小惩大诫
-                    state.currentStatus = 'puzzled';
-                    state.iceCreams = Math.max(0, state.iceCreams - 0.2);
-                    timeRemaining = Math.max(1, timeRemaining - elapsed);
+                    targetStatus = 'puzzled'; potentialPenalty = 0.2;
                 }
-                saveState(); 
-                updateUI();
+
+                pendingDeduction = {
+                    status: targetStatus,
+                    penalty: potentialPenalty,
+                    secondsToSubtract: elapsed
+                };
+
+                let m = Math.floor(elapsed / 60), s = elapsed % 60;
+                let durationText = m > 0 ? `${m}分${s}秒` : `${s}秒`;
+                
+                document.getElementById('appeal-img').src = nanaStates[targetStatus].img;
+                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了 <span style="color:var(--purple);font-weight:bold;">${durationText}</span>！<br><br>如果是遭遇了不可抗力（如来电、系统熄屏、网络刷新），请选择绿色免罚；若确实开小差了，请诚实受罚扣除 <span style="color:#e53935;font-weight:bold;">${potentialPenalty} 🍦</span>。`;
+                document.getElementById('appeal-modal').style.display = 'flex';
             }
+        }
+
+        // 弹窗裁决执行
+        function resolveAppeal(isInnocent) {
+            document.getElementById('appeal-modal').style.display = 'none';
+            
+            // 扣除自然流逝的时间
+            timeRemaining = Math.max(1, timeRemaining - pendingDeduction.secondsToSubtract);
+            
+            if (isInnocent) {
+                state.currentStatus = 'studying';
+                calmDownCountdown = 0; // 清白状态不需要消除CD
+            } else {
+                state.currentStatus = pendingDeduction.status;
+                state.iceCreams = Math.max(0, state.iceCreams - pendingDeduction.penalty);
+                // 认罚后，开启 60 秒“戴罪立功”观察期
+                calmDownCountdown = 60; 
+            }
+            
+            saveState();
+            updateUI();
+            
+            // 重新恢复主时钟循环
+            let mins = Math.floor(timeRemaining / 60), secs = Math.floor(timeRemaining % 60);
+            document.getElementById('timer-text').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            runTimerLoop();
         }
 
         function startMeditation() { currentFocusDuration = 5; startFocus(); }
@@ -563,7 +636,7 @@
             if(confirm("确定重置今日复习数值吗？（已保存的历史日志不会丢失，且会顺便解除锁机状态）")) {
                 let today = getTodayStr(); state.todayFocusMinutes = 0; state.iceCreamsEarnedToday = 0; state.dailyLogs[today] = "";
                 state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
-                state.isLocked = false; state.currentStatus = 'defaultState'; // 顺便一键解锁
+                state.isLocked = false; state.currentStatus = 'defaultState'; calmDownCountdown = 0;
                 saveState(); updateUI(); updateDiaryView();
             }
         }
