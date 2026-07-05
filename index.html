@@ -304,7 +304,7 @@
             <button class="btn-appeal-option" onclick="resolveAppeal('lockscreen')">📖 我刚才一直在锁屏安心背诵</button>
             <button class="btn-appeal-option" onclick="resolveAppeal('call')">📞 刚刚接了个电话/系统拦截</button>
             <button class="btn-appeal-option" onclick="resolveAppeal('water')">🚰 离座去接水/上洗手间了</button>
-            <button class="btn-appeal-option" onclick="resolveAppeal('material')">📚 在用手机查复习资料 (限每日1次)</button>
+            <button class="btn-appeal-option" onclick="resolveAppeal('material')">📚 在用手机查复习资料</button>
             <button class="btn-appeal-option honest" onclick="resolveAppeal('phone')">📱 被抓包了，确实偷偷刷了手机</button>
         </div>
     </div>
@@ -321,7 +321,6 @@
             return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
         }
 
-        // 人类直觉时间单位转换核心逻辑
         function formatSecondsToHumanReadable(seconds) {
             if (seconds < 60) return "0分钟";
             if (seconds < 3600) {
@@ -344,8 +343,8 @@
             currentStatus: localStorage.getItem('currentStatus') || 'Idle', 
             lastDate: localStorage.getItem('lastDate') || getTodayStr(),
             
-            todayBackgroundCount: parseInt(localStorage.getItem('todayBackgroundCount')) || 0, // 现映射为今日分心次数
-            todayBackgroundSeconds: parseInt(localStorage.getItem('todayBackgroundSeconds')) || 0, // 今日分心时长
+            todayBackgroundCount: parseInt(localStorage.getItem('todayBackgroundCount')) || 0, 
+            todayBackgroundSeconds: parseInt(localStorage.getItem('todayBackgroundSeconds')) || 0, 
             todayTotalIntegrity: parseFloat(localStorage.getItem('todayTotalIntegrity')) || 0,
             todayCompletedSessions: parseInt(localStorage.getItem('todayCompletedSessions')) || 0,
             dailyForgivenCount: parseInt(localStorage.getItem('dailyForgivenCount')) || 0, 
@@ -363,18 +362,17 @@
             focusStartTime: parseInt(localStorage.getItem('focusStartTime')) || 0,
             focusExpectedMinutes: parseInt(localStorage.getItem('focusExpectedMinutes')) || 25,
             
-            // 行为流重构级新增缓存数据
+            // v2.0 重构核心底层状态缓存
             leaveTime: parseInt(localStorage.getItem('leaveTime')) || 0,
             returnTime: parseInt(localStorage.getItem('returnTime')) || 0,
-            leaveCount: parseInt(localStorage.getItem('leaveCount')) || 0,
-            returnCount: parseInt(localStorage.getItem('returnCount')) || 0,
-            behaviorBuffer: []
+            trustScore: parseInt(localStorage.getItem('trustScore')) || 100, // 初始诚信分 100
+            behaviorBuffer: [] // 维护最近30分钟的行为数据窗口
         };
 
         try { state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {}; } catch(e) { state.dailyLogs = {}; }
         try { state.behaviorBuffer = JSON.parse(localStorage.getItem('behaviorBuffer')) || []; } catch(e) { state.behaviorBuffer = []; }
 
-        let timerInterval = null, bufferAnalysisTimeout = null, isRunning = false;
+        let timerInterval = null, isRunning = false;
         let currentFocusDuration = 25; 
         let focusIntegrity = 100; 
         let pendingSettleData = null; 
@@ -390,7 +388,6 @@
                 document.getElementById('integrity-text').style.display = 'block';
                 runTimerLoop();
             } else {
-                // 如果是重新打开网页，且不处于专注中
                 state.currentStatus = 'Idle';
                 saveState();
             }
@@ -425,8 +422,8 @@
                 state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
                 state.lastDate = today;
                 state.behaviorBuffer = [];
-                state.leaveCount = 0;
-                state.returnCount = 0;
+                state.leaveTime = 0;
+                state.returnTime = 0;
                 saveState();
                 return true;
             }
@@ -461,10 +458,10 @@
                     imgEl.src = "https://i.postimg.cc/brL43YLs/naong_excited.png.png";
                     msgEl.innerText = "🎉 考研战神！你已经超越目标了！拿拿兴奋得想去考研大纲上跳芭蕾！🍦 正在疯狂翻倍中！";
                 } else if (elapsedMs < 2 * 60 * 1000) {
-                    imgEl.src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg"; // naong_default
+                    imgEl.src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg";
                     msgEl.innerText = "哈罗！又是元气满满的一节，拿拿把复习资料都准备好啦，前2分钟我们先轻松进入状态吧～";
                 } else {
-                    imgEl.src = "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg"; // naong_studying
+                    imgEl.src = "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg";
                     msgEl.innerText = "嘘……（小声）拿拿进入认真陪读模式了，纸笔已备好，我们一起冲刺上岸！";
                 }
             } else {
@@ -562,10 +559,9 @@
             isRunning = true; 
             focusIntegrity = 100;
             
-            // 清理上一轮遗留的滑动行为窗口缓存
             state.behaviorBuffer = [];
-            state.leaveCount = 0;
-            state.returnCount = 0;
+            state.leaveTime = 0;
+            state.returnTime = 0;
             
             state.focusStartTime = Date.now();
             state.focusExpectedMinutes = currentFocusDuration;
@@ -625,97 +621,128 @@
             }, 1000);
         }
 
-        function applyIntegrityDeduction(bgSeconds) {
-            if (bgSeconds <= 30) focusIntegrity = Math.max(10, focusIntegrity - 5);
-            else if (bgSeconds <= 120) focusIntegrity = Math.max(10, focusIntegrity - 20);
-            else if (bgSeconds <= 300) focusIntegrity = Math.max(10, focusIntegrity - 40);
-            else focusIntegrity = Math.max(10, focusIntegrity - 60);
-            document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
-        }
-
-        // ① 行为判定流重构
+        // v2.0 行为判定核心链路架构改写
         function handleVisibilityChange() {
             ensureSystemValid(); 
             if (!isRunning || state.isLocked) return;
 
+            let now = Date.now();
+
             if (document.hidden) { 
-                state.leaveTime = Date.now(); 
-                state.leaveCount++;
+                state.leaveTime = now; 
                 saveState();
             } else if (state.leaveTime > 0) {
-                state.returnTime = Date.now();
-                state.returnCount++;
+                state.returnTime = now;
                 
                 let backgroundSeconds = Math.round((state.returnTime - state.leaveTime) / 1000);
                 
-                // 将单次行为压入行为缓存队列
-                state.behaviorBuffer.push({
-                    leave: state.leaveTime,
-                    return: state.returnTime,
-                    duration: backgroundSeconds
-                });
+                // 第③层行为特征计算：计算此次切出前，用户在前台坚持学习了多久 (前台跨次追溯)
+                let foregroundSeconds = 0;
+                let lastRecord = state.behaviorBuffer[state.behaviorBuffer.length - 1];
+                if (lastRecord) {
+                    foregroundSeconds = Math.round((state.leaveTime - lastRecord.returnTime) / 1000);
+                } else {
+                    foregroundSeconds = Math.round((state.leaveTime - state.focusStartTime) / 1000);
+                }
+
+                // 第一层：只记录事实，不立即处罚
+                let currentItem = {
+                    leaveTime: state.leaveTime,
+                    returnTime: state.returnTime,
+                    duration: backgroundSeconds,
+                    foregroundDuration: foregroundSeconds
+                };
                 
+                state.behaviorBuffer.push(currentItem);
                 state.leaveTime = 0; 
+
+                // 第二层：维护最近30分钟的行为滑动窗口（清洗过期数据）
+                state.behaviorBuffer = state.behaviorBuffer.filter(item => {
+                    return (now - item.returnTime) <= 30 * 60 * 1000;
+                });
+
                 saveState();
 
-                // 开启/重置 5分钟异步行为流侧写窗口
-                clearTimeout(bufferAnalysisTimeout);
-                bufferAnalysisTimeout = setTimeout(() => {
-                    analyzeBehaviorWindow();
-                }, 5 * 60 * 1000); // 5分钟硬核分析窗口
+                // 立即同步触发核心决策算法，无需任何隐患巨大的异步 setTimeout
+                analyzeBehaviorWindow();
             }
         }
 
-        // ⑨ 新增行为缓存统一分类器
+        // Focus v2.0 风险值综合计算分类器
         function analyzeBehaviorWindow() {
             if (!isRunning || state.behaviorBuffer.length === 0) return;
 
-            let totalWindowDuration = 0;
-            state.behaviorBuffer.forEach(b => totalWindowDuration += b.duration);
+            let latestRecord = state.behaviorBuffer[state.behaviorBuffer.length - 1];
+            let riskScore = 0;
 
-            let classification = "Normal";
+            // 规则①：后台时长权重
+            let bgSec = latestRecord.duration;
+            if (bgSec < 20) riskScore += 2;
+            else if (bgSec <= 60) riskScore += 1;
+            else if (bgSec <= 300) riskScore += 0;
+            else riskScore -= 2; // > 5分钟判定可能锁屏学习
 
-            // 分类规则判定
-            if (state.behaviorBuffer.length >= 2) {
-                classification = "Phone"; // 5分钟内反复退出/返回 ≥ 2次 -> 玩手机
-            } else if (state.behaviorBuffer.length === 1) {
-                let singleLeaveSecs = state.behaviorBuffer[0].duration;
-                if (singleLeaveSecs >= 5 * 60) {
-                    classification = "Sleep"; // 5分钟内仅退出一次，且持续时间 ≥ 5分钟 -> 熄屏学习
-                } else {
-                    classification = "Appeal"; // 一次离开 < 5分钟 -> 等待用户申诉
+            // 规则②：最近30分钟退出次数
+            let exitCount = state.behaviorBuffer.length;
+            if (exitCount === 2) riskScore += 2;
+            else if (exitCount === 3) riskScore += 5;
+            else if (exitCount >= 4) riskScore += 10;
+
+            // 规则③：回来以后坚持了多久
+            let foreSec = latestRecord.foregroundDuration;
+            if (foreSec >= 30 * 60) riskScore -= 4; // 坚持了30分钟以上
+            else if (foreSec >= 15 * 60) riskScore -= 2; // 坚持了15分钟以上
+            else if (foreSec > 0 && foreSec < 10) riskScore += 5; // 刚回来10秒又出去，极度危险
+
+            // 规则④：是否连续频繁发生 (回马枪特征匹配)
+            if (state.behaviorBuffer.length >= 3) {
+                let last3 = state.behaviorBuffer.slice(-3);
+                let looksLikeSocialMedia = last3.every(b => b.duration <= 30);
+                if (looksLikeSocialMedia) {
+                    riskScore += 8; // 确诊回微信/QQ/刷微博
                 }
             }
 
-            // 清空本轮已分析的缓存
-            state.behaviorBuffer = [];
-            state.leaveCount = 0;
-            state.returnCount = 0;
-            saveState();
+            // 规则⑤：长效豁免 reset
+            if (bgSec >= 25 * 60 && foreSec >= 2 * 60 * 60) {
+                riskScore = 0; // 长效安心背诵锁屏后，风险彻底归零
+            }
 
-            // 依据判定结果执行后续惩罚、统计与申诉响应
-            executeBehaviorConsequence(classification, totalWindowDuration);
-        }
+            // 第六层：引入诚信分（trustScore）制约加权
+            if (state.trustScore >= 90) {
+                riskScore -= 2; // 长期诚信良好，系统额外赋予信任冗余
+            } else if (state.trustScore < 50) {
+                riskScore += 4; // 违规记录过多，惩罚严重加重
+            }
 
-        function executeBehaviorConsequence(result, totalDuration) {
-            if (result === "Phone") {
-                // ② 后台统计：只有判定为玩手机才追加
-                state.todayBackgroundCount++;
-                state.todayBackgroundSeconds += totalDuration;
-                
-                // ③ 完整度：按离开时间扣分
-                applyIntegrityDeduction(totalDuration);
-                saveState(); updateUI();
-            } else if (result === "Sleep") {
-                // 熄屏学习保持100%完整度，且不统计后台次数与时间
+            // 纠正风险值下限
+            riskScore = Math.max(0, riskScore);
+
+            // 第五层 & 第七层：计算最终风险，执行精细化渐进式完整度扣分
+            focusIntegrity = Math.max(10, 100 - riskScore);
+            document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
+
+            if (riskScore <= 2) {
+                // 状态完全相信，保持正常状态
                 updateUI();
-            } else if (result === "Appeal") {
+            } else if (riskScore >= 3 && riskScore <= 6) {
                 // 挂起申诉对账单
-                pendingSettleData = { bgSeconds: totalDuration };
-                let timeText = totalDuration > 60 ? `${Math.floor(totalDuration/60)}分${totalDuration%60}秒` : `${totalDuration}秒`;
+                pendingSettleData = { 
+                    risk: riskScore, 
+                    duration: bgSec 
+                };
+                let timeText = bgSec > 60 ? `${Math.floor(bgSec/60)}分${bgSec%60}秒` : `${bgSec}秒`;
                 document.getElementById('appeal-img').src = "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg";
-                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了前台 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>！<br>请诚实报告刚刚的行为：`;
+                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了前台 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>（当前行为风险值: ${riskScore}）！<br>为了考研大局，请诚实对账：`;
                 document.getElementById('appeal-modal').style.display = 'flex';
+            } else if (riskScore >= 7) {
+                // 第八层：强制扣分、不给申诉机会
+                state.todayBackgroundCount++;
+                state.todayBackgroundSeconds += bgSec;
+                
+                // 频繁破坏规则，下调诚信值
+                state.trustScore = Math.max(0, state.trustScore - 5); 
+                saveState(); updateUI();
             }
         }
 
@@ -727,22 +754,24 @@
             pendingSettleData = null;
 
             if (choice === 'phone') {
-                // 确认为玩手机：追加后台记录与完整度折损
+                // 用户承认玩手机或被高阶抓包：强制计入分心日志
                 state.todayBackgroundCount++;
-                state.todayBackgroundSeconds += data.bgSeconds;
-                applyIntegrityDeduction(data.bgSeconds);
-            } 
-            // 其它情况（熄屏、查资料、电话、喝水）：不统计后台次数/时间，保持100%完整度
+                state.todayBackgroundSeconds += data.duration;
+                // 诚信度大打折扣
+                state.trustScore = Math.max(0, state.trustScore - 12);
+            } else {
+                // 诚信抗辩成功（锁屏背书、接电话、洗手间、客观查资料）
+                state.trustScore = Math.min(100, state.trustScore + 3); // 获得信任积累
+                
+                // 豁免当前完整度惩罚，回滚正常表现
+                focusIntegrity = Math.min(100, focusIntegrity + data.risk);
+                document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
+            }
 
             saveState(); updateUI();
         }
 
         function completeFocus() {
-            // 如果结算时依然残留有未到期的分析行为，立刻强制提前分类结算，确保数据归宿
-            if (state.behaviorBuffer.length > 0) {
-                analyzeBehaviorWindow();
-            }
-
             clearInterval(timerInterval);
             isRunning = false; 
             document.getElementById('cheat-indicator').style.display = 'none';
@@ -759,6 +788,7 @@
             } else {
                 state.currentStatus = 'Completed';
                 
+                // 严格挂钩专注完整度结算虚拟代币奖励机制
                 let baseEarned = parseFloat(((realElapsedMinutes / 60) * 5).toFixed(2));
                 let finalEarned = parseFloat((baseEarned * (focusIntegrity / 100)).toFixed(2));
                 
@@ -771,10 +801,9 @@
 
                 checkMilestone();
                 
-                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌超额大奖！`;
+                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌代币奖励！`;
                 document.getElementById('reward-modal').style.display = 'flex';
                 
-                // ⑤ 连续学习：准备就绪，UI变更按钮逻辑为重置连续状态
                 let sliderEl = document.getElementById('timer-slider');
                 sliderEl.disabled = false;
                 document.getElementById('timer-text').classList.remove('overtime');
@@ -800,7 +829,7 @@
         }
 
         function abortFocus() {
-            if (state.behaviorBuffer.length > 0) { state.behaviorBuffer = []; }
+            state.behaviorBuffer = [];
             clearInterval(timerInterval);
             isRunning = false; 
             document.getElementById('cheat-indicator').style.display = 'none';
