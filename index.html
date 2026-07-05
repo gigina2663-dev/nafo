@@ -296,12 +296,12 @@
         <button onclick="closeRewardModal()" style="width: 60%; max-width: 200px; height: 44px; border-radius: 22px; border: none; background: var(--pink); color: white; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">领取奖励 🍦</button>
     </div>
 
+    <!-- 诚实对账协议：已斩草除根「锁屏背诵」选项 -->
     <div id="appeal-modal" class="reward-modal">
         <img id="appeal-img" src="https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" alt="Naong Disappointed">
         <h2 style="color: var(--purple); margin: 0 0 4px 0; font-size: 18px; font-weight: 800;">诚实对账协议</h2>
         <p id="appeal-msg" style="color: #444; font-size: 12px; margin: 0 0 10px 0; font-weight: 600; line-height: 1.4; padding: 0 10px;"></p>
         <div class="appeal-vertical-group">
-            <button class="btn-appeal-option" onclick="resolveAppeal('lockscreen')">📖 我刚才一直在锁屏安心背诵</button>
             <button class="btn-appeal-option" onclick="resolveAppeal('call')">📞 刚刚接了个电话/系统拦截</button>
             <button class="btn-appeal-option" onclick="resolveAppeal('water')">🚰 离座去接水/上洗手间了</button>
             <button class="btn-appeal-option" onclick="resolveAppeal('material')">📚 在用手机查复习资料</button>
@@ -661,38 +661,37 @@
             }
         }
 
-        // Focus v2.0 风险值综合计算分类器（已完美融入 5 分钟硬核防分心规则）
+        // Focus v2.1 风险值综合计算分类器（5分钟以内严格判定为分心行为，不可免责）
         function analyzeBehaviorWindow() {
             if (!isRunning || state.behaviorBuffer.length === 0) return;
 
             let latestRecord = state.behaviorBuffer[state.behaviorBuffer.length - 1];
             let riskScore = 0;
 
-            // 规则①：后台时长权重（5分钟内一律视为分心，不属于锁屏背诵）
+            // 规则①：后台时长权重（5分钟以内属于分心犯规）
             let bgSec = latestRecord.duration;
             if (bgSec < 300) {
-                // 5分钟（300秒）以内判定为分心，切出时间越久，分心初始风险值越高
                 if (bgSec < 20) riskScore += 3;
                 else if (bgSec <= 60) riskScore += 4;
                 else riskScore += 5;
             } else {
-                // 超过 5 分钟判定为安心锁屏学习，给予风险减免
+                // 超过 5 分钟判定为长效锁屏背诵，触发免责扣分倒扣减免
                 riskScore -= 2;
             }
 
-            // 规则②：最近30分钟退出次数
+            // 规则②：最近30分钟退出频次
             let exitCount = state.behaviorBuffer.length;
             if (exitCount === 2) riskScore += 2;
             else if (exitCount === 3) riskScore += 5;
             else if (exitCount >= 4) riskScore += 10;
 
-            // 规则③：回来以后坚持了多久
+            // 规则③：前台坚守深度
             let foreSec = latestRecord.foregroundDuration;
             if (foreSec >= 30 * 60) riskScore -= 4; 
             else if (foreSec >= 15 * 60) riskScore -= 2; 
             else if (foreSec > 0 && foreSec < 10) riskScore += 5; 
 
-            // 规则④：是否连续频繁发生 (回马枪特征匹配)
+            // 规则④：高频闪退复刻分析 (判定社交软件刷屏特征)
             if (state.behaviorBuffer.length >= 3) {
                 let last3 = state.behaviorBuffer.slice(-3);
                 let looksLikeSocialMedia = last3.every(b => b.duration <= 30);
@@ -701,12 +700,12 @@
                 }
             }
 
-            // 规则⑤：长效锁屏复习豁免机制重算
+            // 规则⑤：5分钟以上长效背诵彻底豁免
             if (bgSec >= 5 * 60 && foreSec >= 20 * 60) {
-                riskScore = 0; // 锁屏背诵超过5分钟且前台已经学满20分钟，认定为高阶学习特征，风险彻底归零
+                riskScore = 0; 
             }
 
-            // 第六层：引入诚信分（trustScore）制约加权
+            // 规则⑥：结合历史诚信度（trustScore）进行修正
             if (state.trustScore >= 90) {
                 riskScore -= 2; 
             } else if (state.trustScore < 50) {
@@ -715,7 +714,7 @@
 
             riskScore = Math.max(0, riskScore);
 
-            // 第五层 & 第七层：计算最终风险，执行精细化渐进式完整度扣分
+            // 精细化梯度处理与计算完整度
             focusIntegrity = Math.max(10, 100 - riskScore);
             document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
 
