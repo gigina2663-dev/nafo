@@ -362,11 +362,10 @@
             focusStartTime: parseInt(localStorage.getItem('focusStartTime')) || 0,
             focusExpectedMinutes: parseInt(localStorage.getItem('focusExpectedMinutes')) || 25,
             
-            // v2.0 重构核心底层状态缓存
             leaveTime: parseInt(localStorage.getItem('leaveTime')) || 0,
             returnTime: parseInt(localStorage.getItem('returnTime')) || 0,
-            trustScore: parseInt(localStorage.getItem('trustScore')) || 100, // 初始诚信分 100
-            behaviorBuffer: [] // 维护最近30分钟的行为数据窗口
+            trustScore: parseInt(localStorage.getItem('trustScore')) || 100, 
+            behaviorBuffer: [] 
         };
 
         try { state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {}; } catch(e) { state.dailyLogs = {}; }
@@ -621,7 +620,6 @@
             }, 1000);
         }
 
-        // v2.0 行为判定核心链路架构改写
         function handleVisibilityChange() {
             ensureSystemValid(); 
             if (!isRunning || state.isLocked) return;
@@ -636,7 +634,6 @@
                 
                 let backgroundSeconds = Math.round((state.returnTime - state.leaveTime) / 1000);
                 
-                // 第③层行为特征计算：计算此次切出前，用户在前台坚持学习了多久 (前台跨次追溯)
                 let foregroundSeconds = 0;
                 let lastRecord = state.behaviorBuffer[state.behaviorBuffer.length - 1];
                 if (lastRecord) {
@@ -645,7 +642,6 @@
                     foregroundSeconds = Math.round((state.leaveTime - state.focusStartTime) / 1000);
                 }
 
-                // 第一层：只记录事实，不立即处罚
                 let currentItem = {
                     leaveTime: state.leaveTime,
                     returnTime: state.returnTime,
@@ -656,31 +652,33 @@
                 state.behaviorBuffer.push(currentItem);
                 state.leaveTime = 0; 
 
-                // 第二层：维护最近30分钟的行为滑动窗口（清洗过期数据）
                 state.behaviorBuffer = state.behaviorBuffer.filter(item => {
                     return (now - item.returnTime) <= 30 * 60 * 1000;
                 });
 
                 saveState();
-
-                // 立即同步触发核心决策算法，无需任何隐患巨大的异步 setTimeout
                 analyzeBehaviorWindow();
             }
         }
 
-        // Focus v2.0 风险值综合计算分类器
+        // Focus v2.0 风险值综合计算分类器（已完美融入 5 分钟硬核防分心规则）
         function analyzeBehaviorWindow() {
             if (!isRunning || state.behaviorBuffer.length === 0) return;
 
             let latestRecord = state.behaviorBuffer[state.behaviorBuffer.length - 1];
             let riskScore = 0;
 
-            // 规则①：后台时长权重
+            // 规则①：后台时长权重（5分钟内一律视为分心，不属于锁屏背诵）
             let bgSec = latestRecord.duration;
-            if (bgSec < 20) riskScore += 2;
-            else if (bgSec <= 60) riskScore += 1;
-            else if (bgSec <= 300) riskScore += 0;
-            else riskScore -= 2; // > 5分钟判定可能锁屏学习
+            if (bgSec < 300) {
+                // 5分钟（300秒）以内判定为分心，切出时间越久，分心初始风险值越高
+                if (bgSec < 20) riskScore += 3;
+                else if (bgSec <= 60) riskScore += 4;
+                else riskScore += 5;
+            } else {
+                // 超过 5 分钟判定为安心锁屏学习，给予风险减免
+                riskScore -= 2;
+            }
 
             // 规则②：最近30分钟退出次数
             let exitCount = state.behaviorBuffer.length;
@@ -690,32 +688,31 @@
 
             // 规则③：回来以后坚持了多久
             let foreSec = latestRecord.foregroundDuration;
-            if (foreSec >= 30 * 60) riskScore -= 4; // 坚持了30分钟以上
-            else if (foreSec >= 15 * 60) riskScore -= 2; // 坚持了15分钟以上
-            else if (foreSec > 0 && foreSec < 10) riskScore += 5; // 刚回来10秒又出去，极度危险
+            if (foreSec >= 30 * 60) riskScore -= 4; 
+            else if (foreSec >= 15 * 60) riskScore -= 2; 
+            else if (foreSec > 0 && foreSec < 10) riskScore += 5; 
 
             // 规则④：是否连续频繁发生 (回马枪特征匹配)
             if (state.behaviorBuffer.length >= 3) {
                 let last3 = state.behaviorBuffer.slice(-3);
                 let looksLikeSocialMedia = last3.every(b => b.duration <= 30);
                 if (looksLikeSocialMedia) {
-                    riskScore += 8; // 确诊回微信/QQ/刷微博
+                    riskScore += 8; 
                 }
             }
 
-            // 规则⑤：长效豁免 reset
-            if (bgSec >= 25 * 60 && foreSec >= 2 * 60 * 60) {
-                riskScore = 0; // 长效安心背诵锁屏后，风险彻底归零
+            // 规则⑤：长效锁屏复习豁免机制重算
+            if (bgSec >= 5 * 60 && foreSec >= 20 * 60) {
+                riskScore = 0; // 锁屏背诵超过5分钟且前台已经学满20分钟，认定为高阶学习特征，风险彻底归零
             }
 
             // 第六层：引入诚信分（trustScore）制约加权
             if (state.trustScore >= 90) {
-                riskScore -= 2; // 长期诚信良好，系统额外赋予信任冗余
+                riskScore -= 2; 
             } else if (state.trustScore < 50) {
-                riskScore += 4; // 违规记录过多，惩罚严重加重
+                riskScore += 4; 
             }
 
-            // 纠正风险值下限
             riskScore = Math.max(0, riskScore);
 
             // 第五层 & 第七层：计算最终风险，执行精细化渐进式完整度扣分
@@ -723,24 +720,19 @@
             document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
 
             if (riskScore <= 2) {
-                // 状态完全相信，保持正常状态
                 updateUI();
             } else if (riskScore >= 3 && riskScore <= 6) {
-                // 挂起申诉对账单
                 pendingSettleData = { 
                     risk: riskScore, 
                     duration: bgSec 
                 };
                 let timeText = bgSec > 60 ? `${Math.floor(bgSec/60)}分${bgSec%60}秒` : `${bgSec}秒`;
                 document.getElementById('appeal-img').src = "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg";
-                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了前台 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>（当前行为风险值: ${riskScore}）！<br>为了考研大局，请诚实对账：`;
+                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了前台 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>（5分钟内确认为分心动作，风险值: ${riskScore}）！<br>为了考研大局，请诚实对账：`;
                 document.getElementById('appeal-modal').style.display = 'flex';
             } else if (riskScore >= 7) {
-                // 第八层：强制扣分、不给申诉机会
                 state.todayBackgroundCount++;
                 state.todayBackgroundSeconds += bgSec;
-                
-                // 频繁破坏规则，下调诚信值
                 state.trustScore = Math.max(0, state.trustScore - 5); 
                 saveState(); updateUI();
             }
@@ -754,16 +746,11 @@
             pendingSettleData = null;
 
             if (choice === 'phone') {
-                // 用户承认玩手机或被高阶抓包：强制计入分心日志
                 state.todayBackgroundCount++;
                 state.todayBackgroundSeconds += data.duration;
-                // 诚信度大打折扣
                 state.trustScore = Math.max(0, state.trustScore - 12);
             } else {
-                // 诚信抗辩成功（锁屏背书、接电话、洗手间、客观查资料）
-                state.trustScore = Math.min(100, state.trustScore + 3); // 获得信任积累
-                
-                // 豁免当前完整度惩罚，回滚正常表现
+                state.trustScore = Math.min(100, state.trustScore + 3); 
                 focusIntegrity = Math.min(100, focusIntegrity + data.risk);
                 document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
             }
@@ -788,7 +775,6 @@
             } else {
                 state.currentStatus = 'Completed';
                 
-                // 严格挂钩专注完整度结算虚拟代币奖励机制
                 let baseEarned = parseFloat(((realElapsedMinutes / 60) * 5).toFixed(2));
                 let finalEarned = parseFloat((baseEarned * (focusIntegrity / 100)).toFixed(2));
                 
