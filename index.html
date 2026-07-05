@@ -168,7 +168,6 @@
 
     <!-- 强制惩罚锁屏遮罩 -->
     <div id="lock-mask">
-        <!-- 默认被锁状态UI -->
         <div id="punish-ui" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
             <img src="https://i.postimg.cc/901sJX1z/naong_punished.png.jpg" style="width:130px; height:130px; border-radius:50%; margin-bottom:15px; border: 4px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.1);" alt="惩罚">
             <h2 style="color:#e53935; margin:0 0 10px 0; font-weight:800;">🔒 拿拿小黑屋禁闭中</h2>
@@ -178,7 +177,6 @@
                 <button class="btn-appeal-option" style="height:40px;" onclick="startMeditation()">🧘‍♂️ 强行面壁静思苦修 (5分钟)</button>
             </div>
         </div>
-        <!-- 专属面壁中UI面板 -->
         <div id="meditation-ui" style="display: none; flex-direction: column; align-items: center; width: 100%;">
             <img src="https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg" style="width:130px; height:130px; border-radius:50%; margin-bottom:15px; border: 4px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.1);" alt="面壁">
             <h2 style="color:var(--purple); margin:0 0 10px 0; font-weight:800;">🧘‍♂️ 正在硬核面壁苦修中</h2>
@@ -219,18 +217,18 @@
         <div class="dashboard-grid">
             <div class="stat-card">
                 <div>☀️ 今日复习</div>
-                <div id="today-time">0.0 分钟</div>
+                <div id="today-time">0分钟</div>
             </div>
             <div class="stat-card">
                 <div>⏱️ 总累计</div>
-                <div id="total-time">0.0 分钟</div>
+                <div id="total-time">0分钟</div>
             </div>
         </div>
 
         <div class="dashboard-grid" style="margin-bottom: 4px;">
             <div class="stat-card" style="padding: 4px 10px;">
-                <div>📱 今日后台/时间</div>
-                <div id="today-bg-stats" style="font-size: 11px; color:#555;">0次 / 0秒</div>
+                <div>📱 今日分心次数</div>
+                <div id="today-bg-stats" style="font-size: 11px; color:#555;">0次 / 0分钟</div>
             </div>
             <div class="stat-card" style="padding: 4px 10px;">
                 <div>🛡️ 今日均完整度</div>
@@ -323,6 +321,21 @@
             return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
         }
 
+        // 人类直觉时间单位转换核心逻辑
+        function formatSecondsToHumanReadable(seconds) {
+            if (seconds < 60) return "0分钟";
+            if (seconds < 3600) {
+                return Math.floor(seconds / 60) + "分钟";
+            }
+            let hrs = Math.floor(seconds / 3600);
+            let mins = Math.floor((seconds % 3600) / 60);
+            return `${hrs}小时${mins.toString().padStart(2, '0')}分钟`;
+        }
+
+        function formatMinutesToHumanReadable(minutes) {
+            return formatSecondsToHumanReadable(Math.round(minutes * 60));
+        }
+
         let state = {
             iceCreams: parseFloat(localStorage.getItem('iceCreams')) || 10.0,
             totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
@@ -331,8 +344,8 @@
             currentStatus: localStorage.getItem('currentStatus') || 'Idle', 
             lastDate: localStorage.getItem('lastDate') || getTodayStr(),
             
-            todayBackgroundCount: parseInt(localStorage.getItem('todayBackgroundCount')) || 0,
-            todayBackgroundSeconds: parseInt(localStorage.getItem('todayBackgroundSeconds')) || 0,
+            todayBackgroundCount: parseInt(localStorage.getItem('todayBackgroundCount')) || 0, // 现映射为今日分心次数
+            todayBackgroundSeconds: parseInt(localStorage.getItem('todayBackgroundSeconds')) || 0, // 今日分心时长
             todayTotalIntegrity: parseFloat(localStorage.getItem('todayTotalIntegrity')) || 0,
             todayCompletedSessions: parseInt(localStorage.getItem('todayCompletedSessions')) || 0,
             dailyForgivenCount: parseInt(localStorage.getItem('dailyForgivenCount')) || 0, 
@@ -349,22 +362,27 @@
 
             focusStartTime: parseInt(localStorage.getItem('focusStartTime')) || 0,
             focusExpectedMinutes: parseInt(localStorage.getItem('focusExpectedMinutes')) || 25,
+            
+            // 行为流重构级新增缓存数据
             leaveTime: parseInt(localStorage.getItem('leaveTime')) || 0,
-            lastHeartbeatTime: parseInt(localStorage.getItem('lastHeartbeatTime')) || 0
+            returnTime: parseInt(localStorage.getItem('returnTime')) || 0,
+            leaveCount: parseInt(localStorage.getItem('leaveCount')) || 0,
+            returnCount: parseInt(localStorage.getItem('returnCount')) || 0,
+            behaviorBuffer: []
         };
 
         try { state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {}; } catch(e) { state.dailyLogs = {}; }
+        try { state.behaviorBuffer = JSON.parse(localStorage.getItem('behaviorBuffer')) || []; } catch(e) { state.behaviorBuffer = []; }
 
-        let timerInterval = null, heartbeatInterval = null, isRunning = false;
+        let timerInterval = null, bufferAnalysisTimeout = null, isRunning = false;
         let currentFocusDuration = 25; 
         let focusIntegrity = 100; 
-        let recoveryCountdown = 0; 
         let pendingSettleData = null; 
 
         function init() { 
             ensureSystemValid(); 
             
-            if (state.currentStatus === 'Studying' || state.currentStatus === 'Recovering' || state.currentStatus === 'Meditating') {
+            if (state.currentStatus === 'Studying' || state.currentStatus === 'Meditating') {
                 isRunning = true;
                 currentFocusDuration = state.focusExpectedMinutes;
                 document.getElementById('timer-slider').value = currentFocusDuration;
@@ -372,6 +390,7 @@
                 document.getElementById('integrity-text').style.display = 'block';
                 runTimerLoop();
             } else {
+                // 如果是重新打开网页，且不处于专注中
                 state.currentStatus = 'Idle';
                 saveState();
             }
@@ -405,6 +424,9 @@
                 state.dailyForgivenCount = 0; 
                 state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
                 state.lastDate = today;
+                state.behaviorBuffer = [];
+                state.leaveCount = 0;
+                state.returnCount = 0;
                 saveState();
                 return true;
             }
@@ -429,16 +451,6 @@
                 msgEl.innerText = "💤 强制小黑屋关闭中！去商店换个面包，或者闭门冥思苦修...";
                 return;
             }
-            if (state.currentStatus === 'Warning') {
-                imgEl.src = "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg";
-                msgEl.innerText = "🤔 刚刚去哪儿啦？拿拿正在等你对账哦...";
-                return;
-            }
-            if (state.currentStatus === 'Recovering') {
-                imgEl.src = "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg";
-                msgEl.innerText = "哼，拿拿现在有点小情绪！不许再乱跑了，把前台保持住，看你表现！";
-                return;
-            }
             
             if (isRunning) {
                 let now = Date.now();
@@ -449,10 +461,10 @@
                     imgEl.src = "https://i.postimg.cc/brL43YLs/naong_excited.png.png";
                     msgEl.innerText = "🎉 考研战神！你已经超越目标了！拿拿兴奋得想去考研大纲上跳芭蕾！🍦 正在疯狂翻倍中！";
                 } else if (elapsedMs < 2 * 60 * 1000) {
-                    imgEl.src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg";
+                    imgEl.src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg"; // naong_default
                     msgEl.innerText = "哈罗！又是元气满满的一节，拿拿把复习资料都准备好啦，前2分钟我们先轻松进入状态吧～";
                 } else {
-                    imgEl.src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg";
+                    imgEl.src = "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg"; // naong_studying
                     msgEl.innerText = "嘘……（小声）拿拿进入认真陪读模式了，纸笔已备好，我们一起冲刺上岸！";
                 }
             } else {
@@ -468,10 +480,10 @@
 
         function updateUI() {
             document.getElementById('global-icecream').innerText = Number(state.iceCreams).toFixed(1);
-            document.getElementById('today-time').innerText = state.todayFocusMinutes.toFixed(1) + " 分";
-            document.getElementById('total-time').innerText = state.totalFocusMinutes.toFixed(1) + " 分";
+            document.getElementById('today-time').innerText = formatMinutesToHumanReadable(state.todayFocusMinutes);
+            document.getElementById('total-time').innerText = formatMinutesToHumanReadable(state.totalFocusMinutes);
             
-            document.getElementById('today-bg-stats').innerText = `${state.todayBackgroundCount}次 / ${state.todayBackgroundSeconds}秒`;
+            document.getElementById('today-bg-stats').innerText = `${state.todayBackgroundCount}次 / ${formatSecondsToHumanReadable(state.todayBackgroundSeconds)}`;
             let avgInteg = state.todayCompletedSessions > 0 ? Math.round(state.todayTotalIntegrity / state.todayCompletedSessions) : 100;
             document.getElementById('today-avg-integrity').innerText = avgInteg + "%";
 
@@ -549,7 +561,11 @@
             ensureSystemValid(); 
             isRunning = true; 
             focusIntegrity = 100;
-            recoveryCountdown = 0;
+            
+            // 清理上一轮遗留的滑动行为窗口缓存
+            state.behaviorBuffer = [];
+            state.leaveCount = 0;
+            state.returnCount = 0;
             
             state.focusStartTime = Date.now();
             state.focusExpectedMinutes = currentFocusDuration;
@@ -563,20 +579,12 @@
             document.getElementById('integrity-text').style.display = 'block';
             document.getElementById('integrity-text').innerText = `专注完整度: 100%`;
             
-            state.lastHeartbeatTime = Date.now();
             saveState(); updateUI();
             runTimerLoop();
         }
 
         function runTimerLoop() {
             clearInterval(timerInterval);
-            clearInterval(heartbeatInterval);
-
-            heartbeatInterval = setInterval(() => {
-                if (isRunning && !document.hidden) {
-                    state.lastHeartbeatTime = Date.now();
-                }
-            }, 100);
 
             timerInterval = setInterval(() => {
                 ensureSystemValid();
@@ -598,14 +606,6 @@
                         document.getElementById('meditation-timer').innerText = timeStr;
                     }
                     document.getElementById('cheat-indicator').innerText = `⏳ 拿拿正在前台认真陪读中...`;
-                    
-                    if (state.currentStatus === 'Recovering' && recoveryCountdown > 0) {
-                        recoveryCountdown--;
-                        if (recoveryCountdown <= 0) {
-                            state.currentStatus = 'Studying';
-                            saveState();
-                        }
-                    }
                 } else {
                     if (state.currentStatus === 'Meditating') {
                         document.getElementById('meditation-timer').innerText = "00:00";
@@ -619,8 +619,6 @@
                         let secs = Math.floor((overtimeMs % 60000) / 1000);
                         document.getElementById('timer-text').innerText = `+${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
                         document.getElementById('cheat-indicator').innerText = `🚀 棒! 已超越目标，拿拿正陪你持续积累双倍动力！`;
-                        
-                        if (state.currentStatus === 'Recovering') { state.currentStatus = 'Studying'; } 
                         updateUI(); 
                     }
                 }
@@ -635,58 +633,89 @@
             document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
         }
 
+        // ① 行为判定流重构
         function handleVisibilityChange() {
             ensureSystemValid(); 
             if (!isRunning || state.isLocked) return;
 
             if (document.hidden) { 
                 state.leaveTime = Date.now(); 
+                state.leaveCount++;
                 saveState();
             } else if (state.leaveTime > 0) {
-                let now = Date.now();
-                let backgroundSeconds = Math.round((now - state.leaveTime) / 1000);
-                let heartbeatDiff = state.leaveTime - state.lastHeartbeatTime;
+                state.returnTime = Date.now();
+                state.returnCount++;
+                
+                let backgroundSeconds = Math.round((state.returnTime - state.leaveTime) / 1000);
+                
+                // 将单次行为压入行为缓存队列
+                state.behaviorBuffer.push({
+                    leave: state.leaveTime,
+                    return: state.returnTime,
+                    duration: backgroundSeconds
+                });
+                
                 state.leaveTime = 0; 
+                saveState();
 
-                if (backgroundSeconds <= 2) return; 
-
-                state.todayBackgroundCount++;
-                state.todayBackgroundSeconds += backgroundSeconds;
-
-                clearInterval(timerInterval);
-                clearInterval(heartbeatInterval);
-                state.currentStatus = 'Warning';
-                saveState(); updateUI();
-
-                // 核心修复：在此通过心跳差判定系统态
-                let confidenceStars = calculateConfidence(backgroundSeconds, heartbeatDiff);
-
-                pendingSettleData = {
-                    bgSeconds: backgroundSeconds,
-                    stars: confidenceStars
-                };
-
-                let timeText = backgroundSeconds > 60 ? `${Math.floor(backgroundSeconds/60)}分${backgroundSeconds%60}秒` : `${backgroundSeconds}秒`;
-                document.getElementById('appeal-img').src = "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg";
-                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>！<br>可信度安全评级：<span style="color:#ff6b9d;font-weight:bold;">${confidenceStars}</span><br><br>请诚实报告刚刚的行为：`;
-                document.getElementById('appeal-modal').style.display = 'flex';
+                // 开启/重置 5分钟异步行为流侧写窗口
+                clearTimeout(bufferAnalysisTimeout);
+                bufferAnalysisTimeout = setTimeout(() => {
+                    analyzeBehaviorWindow();
+                }, 5 * 60 * 1000); // 5分钟硬核分析窗口
             }
         }
 
-        /* 👑 核心修复：重构可信度算法，精准捕捉 iPadOS 线程中断 👑 */
-        function calculateConfidence(elapsed, hbDiff) {
-            // hbDiff 是离开瞬间：收到隐藏事件的时间 - 最后一次前台有效心跳
-            // 1. 纯熄屏/锁屏：硬件中断发生时系统会优先大幅降频或停止定时器，导致心跳提前卡死，而事件滞后被写入。hbDiff 往往异常偏高 (>250ms)。
-            // 2. 切到别的App：平滑软件切换，事件响应优先级最高，心跳直到最后一毫秒都在闪烁。hbDiff 极度微小 (<150ms)。
-            
-            if (hbDiff > 250) {
-                return "⭐⭐⭐⭐⭐ 行为特征高度吻合物理锁屏（安全）";
-            } else {
-                // 如果用户仅仅离开了不到 5 秒，给个缓刑，可能是误触系统通知或控制中心
-                if (elapsed < 5) {
-                    return "⭐⭐⭐⭐ 无法确定系统态（离开时间极短）";
+        // ⑨ 新增行为缓存统一分类器
+        function analyzeBehaviorWindow() {
+            if (!isRunning || state.behaviorBuffer.length === 0) return;
+
+            let totalWindowDuration = 0;
+            state.behaviorBuffer.forEach(b => totalWindowDuration += b.duration);
+
+            let classification = "Normal";
+
+            // 分类规则判定
+            if (state.behaviorBuffer.length >= 2) {
+                classification = "Phone"; // 5分钟内反复退出/返回 ≥ 2次 -> 玩手机
+            } else if (state.behaviorBuffer.length === 1) {
+                let singleLeaveSecs = state.behaviorBuffer[0].duration;
+                if (singleLeaveSecs >= 5 * 60) {
+                    classification = "Sleep"; // 5分钟内仅退出一次，且持续时间 ≥ 5分钟 -> 熄屏学习
+                } else {
+                    classification = "Appeal"; // 一次离开 < 5分钟 -> 等待用户申诉
                 }
-                return "⭐⭐ 极度疑似切出前台作弊（危险）";
+            }
+
+            // 清空本轮已分析的缓存
+            state.behaviorBuffer = [];
+            state.leaveCount = 0;
+            state.returnCount = 0;
+            saveState();
+
+            // 依据判定结果执行后续惩罚、统计与申诉响应
+            executeBehaviorConsequence(classification, totalWindowDuration);
+        }
+
+        function executeBehaviorConsequence(result, totalDuration) {
+            if (result === "Phone") {
+                // ② 后台统计：只有判定为玩手机才追加
+                state.todayBackgroundCount++;
+                state.todayBackgroundSeconds += totalDuration;
+                
+                // ③ 完整度：按离开时间扣分
+                applyIntegrityDeduction(totalDuration);
+                saveState(); updateUI();
+            } else if (result === "Sleep") {
+                // 熄屏学习保持100%完整度，且不统计后台次数与时间
+                updateUI();
+            } else if (result === "Appeal") {
+                // 挂起申诉对账单
+                pendingSettleData = { bgSeconds: totalDuration };
+                let timeText = totalDuration > 60 ? `${Math.floor(totalDuration/60)}分${totalDuration%60}秒` : `${totalDuration}秒`;
+                document.getElementById('appeal-img').src = "https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg";
+                document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了前台 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>！<br>请诚实报告刚刚的行为：`;
+                document.getElementById('appeal-modal').style.display = 'flex';
             }
         }
 
@@ -698,29 +727,23 @@
             pendingSettleData = null;
 
             if (choice === 'phone') {
+                // 确认为玩手机：追加后台记录与完整度折损
+                state.todayBackgroundCount++;
+                state.todayBackgroundSeconds += data.bgSeconds;
                 applyIntegrityDeduction(data.bgSeconds);
-                state.currentStatus = 'Recovering';
-                recoveryCountdown = data.bgSeconds <= 60 ? 60 : 180;
-            } else if (choice === 'material') {
-                if (state.dailyForgivenCount >= 1) {
-                    applyIntegrityDeduction(data.bgSeconds);
-                    state.currentStatus = 'Recovering';
-                    alert("每天仅能豁免1次查资料哦！这次拿拿要扣分啦！");
-                } else {
-                    state.dailyForgivenCount++;
-                    state.currentStatus = 'Studying';
-                }
-            } else {
-                state.currentStatus = 'Studying';
-                recoveryCountdown = 0;
-            }
+            } 
+            // 其它情况（熄屏、查资料、电话、喝水）：不统计后台次数/时间，保持100%完整度
 
             saveState(); updateUI();
-            runTimerLoop();
         }
 
         function completeFocus() {
-            clearInterval(timerInterval); clearInterval(heartbeatInterval);
+            // 如果结算时依然残留有未到期的分析行为，立刻强制提前分类结算，确保数据归宿
+            if (state.behaviorBuffer.length > 0) {
+                analyzeBehaviorWindow();
+            }
+
+            clearInterval(timerInterval);
             isRunning = false; 
             document.getElementById('cheat-indicator').style.display = 'none';
             document.getElementById('integrity-text').style.display = 'none';
@@ -732,6 +755,7 @@
                 state.isLocked = false; state.currentStatus = 'Idle'; state.iceCreams = Math.max(0, state.iceCreams - 1.0);
                 document.getElementById('meditation-btn-container').innerHTML = '';
                 alert("🧘‍♂️ 恭喜通过硬核冥想面壁！已为你解禁自由身！");
+                resetToIdleState();
             } else {
                 state.currentStatus = 'Completed';
                 
@@ -747,11 +771,17 @@
 
                 checkMilestone();
                 
-                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${realElapsedMinutes} 分钟！\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你斩获发放 ${finalEarned} 🍦 冰激凌超额大奖！`;
+                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌超额大奖！`;
                 document.getElementById('reward-modal').style.display = 'flex';
+                
+                // ⑤ 连续学习：准备就绪，UI变更按钮逻辑为重置连续状态
+                let sliderEl = document.getElementById('timer-slider');
+                sliderEl.disabled = false;
+                document.getElementById('timer-text').classList.remove('overtime');
+                document.getElementById('cheat-indicator').style.display = 'none';
+                
+                document.getElementById('button-container').innerHTML = `<button id="action-btn" class="main-btn" onclick="startFocus()">🔥 直接开始下一轮连轴转专注</button>`;
             }
-            
-            resetToIdleState();
         }
 
         function resetToIdleState() {
@@ -766,11 +796,12 @@
         function closeRewardModal() {
             document.getElementById('reward-modal').style.display = 'none';
             state.currentStatus = 'Idle'; 
-            saveState(); updateUI();
+            resetToIdleState();
         }
 
         function abortFocus() {
-            clearInterval(timerInterval); clearInterval(heartbeatInterval);
+            if (state.behaviorBuffer.length > 0) { state.behaviorBuffer = []; }
+            clearInterval(timerInterval);
             isRunning = false; 
             document.getElementById('cheat-indicator').style.display = 'none';
             document.getElementById('integrity-text').style.display = 'none';
