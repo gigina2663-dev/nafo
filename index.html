@@ -271,7 +271,7 @@
             accent-color: var(--accent-pink);
         }
 
-        /* Bottom Nav Bar matching image_3.png */
+        /* Bottom Nav Bar matching image_4.png */
         .bottom-nav {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -317,8 +317,8 @@
 
     <div class="container">
         
-        <!-- TAB 1: 专属陪伴 -->
-        <div id="tab-companion" class="tab-content">
+        <!-- TAB 1: 专属陪伴 (Default Active per image_4.png) -->
+        <div id="tab-companion" class="tab-content active">
             <div class="timer-setup-box">
                 <div class="stat-title" style="justify-content: center;">🐾 拿拿正在陪你</div>
                 <div id="timer-text" class="timer-display">45:00</div>
@@ -332,8 +332,8 @@
             </div>
         </div>
 
-        <!-- TAB 2: 自习日志 (Matches image_3.png UI Structure) -->
-        <div id="tab-logs" class="tab-content active">
+        <!-- TAB 2: 自习日志 -->
+        <div id="tab-logs" class="tab-content">
             <!-- 2x2 Grid Info Blocks -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -346,7 +346,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-title">📱 今日后台/时间</div>
-                    <!-- Discards raw seconds, auto switches format to X小时Y分钟 -->
+                    <!-- Discards raw seconds, converts format automatically to X小时Y分钟 -->
                     <div class="stat-value" id="stat-bg-info">10次 / 1小时43分钟</div>
                 </div>
                 <div class="stat-card">
@@ -429,10 +429,10 @@
 
     <!-- Navigation Tabs Base -->
     <div class="bottom-nav">
-        <button class="nav-item" onclick="switchTab('tab-companion', this)">
+        <button class="nav-item active" onclick="switchTab('tab-companion', this)">
             <span class="nav-icon">🐾</span>专属陪伴
         </button>
-        <button class="nav-item active" onclick="switchTab('tab-logs', this)">
+        <button class="nav-item" onclick="switchTab('tab-logs', this)">
             <span class="nav-icon">📊</span>自习日志
         </button>
         <button class="nav-item" onclick="switchTab('tab-shop', this)">
@@ -441,7 +441,7 @@
     </div>
 
     <script>
-        // Data Store Logic
+        // Baseline core state objects
         let stats = {
             iceCream: 21.7,
             todayFocus: 140.4,
@@ -451,22 +451,21 @@
             integrity: 100
         };
 
-        // Load data from localStorage if exists
-        if (localStorage.getItem('naonao_focus_data_v3')) {
-            stats = JSON.parse(localStorage.getItem('naonao_focus_data_v3'));
+        // Persistent sync layer
+        if (localStorage.getItem('naonao_focus_data_v4')) {
+            stats = JSON.parse(localStorage.getItem('naonao_focus_data_v4'));
         }
 
-        // Global State Variables for Timer Tracking
         let isFocusing = false;
         let timerInterval = null;
         let countdownSeconds = 2700; 
         let currentSessionDuration = 2700;
         
-        // Shadow Interruption Log Engine
-        let trackingLogs = [];
+        // Active black-box session monitoring parameters
+        let sessionBgLogs = [];
         let timeBlobHidden = null;
 
-        // Formatter utility requested: convert raw seconds to localized format, dropping bare seconds.
+        // Custom filter converting raw seconds into Hour-Minute strings, shedding loose seconds
         function formatBgTimeDisplay(totalSeconds) {
             if (!totalSeconds || totalSeconds < 60) {
                 return "0分钟";
@@ -486,13 +485,13 @@
             document.getElementById('stat-total-focus').innerText = stats.totalFocus.toFixed(1);
             document.getElementById('stat-integrity').innerText = Math.round(stats.integrity);
             
-            // Dynamic Time Conversion Applied
+            // Render the human-scannable time unit layout
             document.getElementById('stat-bg-info').innerText = `${stats.bgCount}次 / ${formatBgTimeDisplay(stats.bgSeconds)}`;
             
             let gap = 360 - stats.todayFocus;
             document.getElementById('target-gap').innerText = gap > 0 ? gap.toFixed(1) : 0;
             
-            localStorage.setItem('naonao_focus_data_v3', JSON.stringify(stats));
+            localStorage.setItem('naonao_focus_data_v4', JSON.stringify(stats));
         }
 
         function switchTab(tabId, element) {
@@ -502,7 +501,7 @@
             element.classList.add('active');
         }
 
-        // Slider Setup Hook
+        // Configuration hooks for customizable range slider
         const slider = document.getElementById('time-slider');
         const timerText = document.getElementById('timer-text');
         
@@ -511,44 +510,46 @@
                 let val = e.target.value;
                 countdownSeconds = val * 60;
                 currentSessionDuration = val * 60;
-                timerText.innerText = `${val.padStart ? val.padStart(2, '0') : (val < 10 ? '0' + val : val)}:00`;
+                timerText.innerText = `${val < 10 ? '0' + val : val}:00`;
             }
         });
 
-        // Background / Foreground Event Interceptor
+        // Background/Screen-off Realtime Listener
         document.addEventListener('visibilitychange', () => {
-            if (!isFocusing) return;
-            
             if (document.hidden) {
                 timeBlobHidden = Date.now();
+                // 1. 熄屏或切后台瞬间：立即视为一次后台闪退记录（满足“熄屏也是算闪退的”底层设计）
+                stats.bgCount += 1;
+                updateUI();
             } else {
                 if (timeBlobHidden) {
-                    let hiddenDurationSeconds = (Date.now() - timeBlobHidden) / 1000;
-                    // Push the timestamped block to audit trail
-                    trackingLogs.push({
-                        duration: hiddenDurationSeconds,
-                        at: new Date().toLocaleTimeString()
-                    });
+                    let duration = (Date.now() - timeBlobHidden) / 1000;
+                    // 2. 统一先累加进今日总后台秒数中
+                    stats.bgSeconds += Math.floor(duration);
                     
-                    // Compensate normal timer mechanics right away
-                    countdownSeconds -= Math.floor(hiddenDurationSeconds);
-                    if (countdownSeconds < 0) countdownSeconds = 0;
-                    
+                    if (isFocusing) {
+                        // 如果正在专注期间，把这段行为加入“审查黑匣子”队列里
+                        sessionBgLogs.push({ duration: duration });
+                        
+                        // 补偿并扣减倒计时时钟内实际流失的时间
+                        countdownSeconds -= Math.floor(duration);
+                        if (countdownSeconds < 0) countdownSeconds = 0;
+                    }
                     timeBlobHidden = null;
+                    updateUI();
                 }
             }
         });
 
-        // Action Trigger Engine
+        // Click Trigger Controller
         const startBtn = document.getElementById('start-btn');
         startBtn.addEventListener('click', () => {
             if (!isFocusing) {
-                // Engage Focus
                 isFocusing = true;
                 startBtn.innerText = "放弃专注";
                 startBtn.style.background = "#adb5bd";
                 slider.disabled = true;
-                trackingLogs = [];
+                sessionBgLogs = [];
                 document.getElementById('pet-status-text').innerText = "拿拿正趴在手边盯着你！绝对不要切走哦！";
                 
                 timerInterval = setInterval(() => {
@@ -562,7 +563,6 @@
                     }
                 }, 1000);
             } else {
-                // Abort focus trigger
                 if(confirm("这就放弃了吗？拿拿会伤心的...")) {
                     endSession(false);
                 }
@@ -572,6 +572,7 @@
         let badFlashesCache = [];
         let rawRewardEarned = 0;
 
+        // Post-Focus Session Audit Logic
         function endSession(isCompleted) {
             clearInterval(timerInterval);
             isFocusing = false;
@@ -580,7 +581,6 @@
             slider.disabled = false;
             document.getElementById('pet-status-text').innerText = "专注结束啦，伸个懒腰准备核对对账单吧！";
             
-            // Re-sync slider base view
             let resetVal = slider.value;
             timerText.innerText = `${resetVal < 10 ? '0' + resetVal : resetVal}:00`;
             countdownSeconds = resetVal * 60;
@@ -592,46 +592,49 @@
                 return;
             }
 
-            // --- 5分钟时空相对论审计过滤引擎核心 ---
+            // --- 5分钟对账平反机制核心段 ---
             badFlashesCache = [];
-            let totalScreenOffDuration = 0;
 
-            trackingLogs.forEach(log => {
+            sessionBgLogs.forEach(log => {
                 if (log.duration > 300) {
-                    // Over 5 min: Cleared as Deep Screen-Off Recitation! 
-                    totalScreenOffDuration += log.duration;
+                    // 【平反】：检测到这次离开持续大于 5 分钟，判定为真实的“物理熄屏背书”
+                    // 最终把熄屏造成的自动闪退次数抹消，同时将其时间从“违规后台时间”里全额减去
+                    stats.bgCount -= 1;
+                    stats.bgSeconds -= Math.floor(log.duration);
                 } else {
-                    // Under 5 min: Real Distraction/Flashes caught.
+                    // 【分心】：小于等于 5 分钟的短闪退，实锤为分心刷手机，归档进入惩罚对账池
                     badFlashesCache.push(log);
                 }
             });
 
-            // Base Reward Rate calculation logic
-            let validFocusMinutes = (currentSessionDuration) / 60;
-            rawRewardEarned = (validFocusMinutes / 60) * 5; // 1 hr = 5 Ice creams base yield
+            // 立即刷新数据看板，确保平反过后的总后台次数和时间完美对齐
+            updateUI();
+
+            let validFocusMinutes = currentSessionDuration / 60;
+            rawRewardEarned = (validFocusMinutes / 60) * 5; 
 
             if (badFlashesCache.length > 0) {
-                // Real Short-term Distractions caught: Trigger Court Panel
+                // 仍留存有违规分心闪退：传唤法庭面板
                 let totalBadBgSeconds = badFlashesCache.reduce((sum, item) => sum + item.duration, 0);
                 
                 document.getElementById('court-description').innerText = 
-                    `本节共检测到 ${badFlashesCache.length} 次短时间碎片化分心闪退（离开共持续 ${Math.round(totalBadBgSeconds)} 秒）。\n*大于5分钟的锁屏背诵已自动豁免。`;
+                    `本节共检测到 ${badFlashesCache.length} 次短时间碎片化分心闪退（累计分心 ${Math.round(totalBadBgSeconds)} 秒）。\n*连续大于5分钟的物理锁屏背书已全额自动为您抹除平反！`;
                 
-                // Clear out checkboxes
                 document.querySelectorAll('input[name="court-reason"]').forEach(cb => cb.checked = false);
-                // Reveal Court modal Panel
                 document.getElementById('court-modal').classList.add('show');
             } else {
-                // Seamless Clean Pass! Perfect Focus or deep Lock Screen run.
+                // 无分心清白通过（包含可能已经完美平反的长时熄屏）
                 stats.todayFocus += validFocusMinutes;
                 stats.totalFocus += validFocusMinutes;
                 stats.iceCream += rawRewardEarned;
                 stats.integrity = Math.min(100, stats.integrity + 5);
                 
-                document.getElementById('naonao-diary').innerText = `【完美通关】这次太强了！拿拿没有抓到任何分心碎屑，完美拿到了 ${rawRewardEarned.toFixed(1)} 个冰激凌！继续保持上岸之姿！`;
+                document.getElementById('naonao-diary').innerText = `【完美通关】这次太强了！拿拿没有抓到任何分心碎屑（长时间锁屏背书已通过过滤免检），拿到 ${rawRewardEarned.toFixed(1)} 个冰激凌！`;
                 updateUI();
                 alert(`太棒了！零碎分心通关！获得 ${rawRewardEarned.toFixed(1)} 🍦`);
             }
+            
+            sessionBgLogs = [];
         }
 
         // Court Settlement Processing Engine
@@ -646,41 +649,34 @@
                 return;
             }
 
-            // Penalty assessment modifiers
             let penaltyFactor = 1.0; 
             let diaryComments = "";
 
             if (checkedReasons.includes('muscle') || checkedReasons.includes('social')) {
-                penaltyFactor = 0.2; // 80% heavy decay for mindless scrolling or texting
-                diaryComments = "抓到了！这次复习期间被肌肉记忆和小红书/微信勾走了。拿拿有点不开心，真题和单词完成了吗？下次手机放远点！";
+                penaltyFactor = 0.2; 
+                diaryComments = "抓到了！这次复习期间被肌肉记忆或社交软件勾走了。下次记得把手机放远点！";
                 stats.integrity = Math.max(0, stats.integrity - (badFlashesCache.length * 8));
             } else {
-                penaltyFactor = 0.7; // Mild decay for tools/study references or critical events
-                diaryComments = "本次有几次短暂的后台资料查阅或突发状况，虽然打乱了心流，但情有可原。下次集中查单词，加油！";
+                penaltyFactor = 0.7; 
+                diaryComments = "本次有几次短暂的后台资料查阅或突发状况，下次争取更专注，加油！";
                 stats.integrity = Math.max(0, stats.integrity - (badFlashesCache.length * 3));
             }
 
-            // Apply calculated scores to permanent balance
             let finalReward = rawRewardEarned * penaltyFactor;
-            let addedBgSeconds = badFlashesCache.reduce((sum, item) => sum + item.duration, 0);
-
-            // Commit to data models
-            stats.bgCount += badFlashesCache.length;
-            stats.bgSeconds += Math.round(addedBgSeconds);
             
             let validMinutes = currentSessionDuration / 60;
             stats.todayFocus += validMinutes;
             stats.totalFocus += validMinutes;
             stats.iceCream += finalReward;
 
-            document.getElementById('naonao-diary').innerText = `【已对账审计】${diaryComments}（增加了 ${badFlashesCache.length} 次有效后台，扣减后获得 ${finalReward.toFixed(1)} 🍦）`;
+            document.getElementById('naonao-diary').innerText = `【已对账复盘】${diaryComments}（本次录得 ${badFlashesCache.length} 次短闪退分心，折算后获得 ${finalReward.toFixed(1)} 🍦）`;
             
-            // Close panel view
+            document.getElementById('court-modal').classList.remove('remove');
             document.getElementById('court-modal').classList.remove('show');
             updateUI();
         });
 
-        // Initialize display configuration on startup
+        // Initialize execution setup
         updateUI();
     </script>
 </body>
