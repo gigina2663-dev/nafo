@@ -191,7 +191,7 @@
         <div id="punish-ui" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
             <img src="https://i.postimg.cc/901sJX1z/naong_punished.png.jpg" style="width:130px; height:130px; border-radius:50%; margin-bottom:15px; border: 4px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.1);" alt="惩罚">
             <h2 style="color:#e53935; margin:0 0 10px 0; font-weight:800;">🔒 拿拿小黑屋禁闭中</h2>
-            <p style="color:#555; font-size:13px; margin:0 0 25px 0; font-weight:600; line-height:1.5;">由于 you 刚刚强行放弃了专注，拿拿现在正在生气睡觉。<br>请闭门思过，或者用冰激凌换面包赎身！</p>
+            <p style="color:#555; font-size:13px; margin:0 0 25px 0; font-weight:600; line-height:1.5;">由于你刚刚强行放弃了专注，拿拿现在正在生气睡觉。<br>请闭门思过，或者用冰激凌换面包赎身！</p>
             <div class="appeal-vertical-group">
                 <button class="btn-appeal-option honest" style="background:var(--purple); color:white; height:40px;" onclick="switchTab('view-shop', document.querySelectorAll('.tab-item')[2])">🛒 动用资产 去商店赎身</button>
                 <button class="btn-appeal-option" style="height:40px;" onclick="startMeditation()">🧘‍♂️ 强行面壁静思苦修 (5分钟)</button>
@@ -564,7 +564,7 @@
                     imgEl.src = "https://i.postimg.cc/brL43YLs/naong_excited.png.png";
                     msgEl.innerText = "🎉 又是离上岸更近的一节！拿拿兴奋得原地转圈圈！快开启下一段挑战吧！";
                 } else {
-                    imgEl.src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg";
+                    imgEl.src = "https://i.postimg.cc/Vvz3q09t/naong_happy.png.jpg";
                     msgEl.innerText = "📚 准备开始今天的学习了吗？拿拿 已经帮你把书翻开啦！";
                 }
             }
@@ -987,7 +987,7 @@
                     `完成比例：${Math.floor(completionRatio * 100)}%`,
                     `折算明细：前台 ${formatSecondsToHumanReadable(state.foregroundFocusSeconds || 0)} x100%，标准熄屏 ${formatSecondsToHumanReadable(state.cleanScreenOffSeconds || 0)} x90%，中断熄屏 ${formatSecondsToHumanReadable(state.interruptedScreenOffSeconds || 0)} x80%`,
                     `专注完整度：${focusIntegrity}%`,
-                    `本轮奖励：${finalEarned} 馃崷`
+                    `本轮奖励：${finalEarned} 🍦`
                 ];
                 document.getElementById('modal-reward-msg').innerText = settleLines.join('\n');
                 document.getElementById('reward-modal').style.display = 'flex';
