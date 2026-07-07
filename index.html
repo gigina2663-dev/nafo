@@ -134,6 +134,26 @@
             flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;
         }
         .reward-modal img { width: 140px; height: 140px; border-radius: 50%; border: 4px solid white; box-shadow: 0 10px 25px rgba(156,39,176,0.15); object-fit: cover; margin-bottom: 12px; }
+        .mode-panel {
+            width: 100%; max-width: 320px; background: rgba(255,255,255,0.72);
+            border: 1px solid rgba(156,39,176,0.12); border-radius: 18px;
+            padding: 14px; box-shadow: 0 12px 30px rgba(156,39,176,0.12);
+        }
+        .mode-grid { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 10px; }
+        .mode-choice {
+            width: 100%; min-height: 54px; border-radius: 14px; border: 1px solid rgba(156,39,176,0.16);
+            background: white; color: #333; text-align: left; padding: 9px 12px; font-weight: 700;
+            box-shadow: 0 3px 10px rgba(156,39,176,0.05);
+        }
+        .mode-choice strong { display: block; font-size: 13px; color: var(--purple); margin-bottom: 2px; }
+        .mode-choice span { display: block; font-size: 10px; color: #666; line-height: 1.35; font-weight: 600; }
+        .mode-choice.primary { background: var(--purple); color: white; border-color: transparent; }
+        .mode-choice.primary strong, .mode-choice.primary span { color: white; }
+        .screenoff-summary {
+            width: 100%; max-width: 300px; background: rgba(156,39,176,0.06);
+            border-radius: 14px; padding: 10px 12px; margin: 8px 0 12px 0;
+            color: #444; font-size: 12px; font-weight: 700; line-height: 1.6; text-align: left;
+        }
 
         .appeal-vertical-group { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 280px; margin-top: 10px; }
         .btn-appeal-option { width: 100%; height: 36px; border-radius: 18px; border: 1px solid rgba(0,0,0,0.1); background: white; color: #333; font-weight: 600; font-size: 12px; transition: all 0.2s; }
@@ -294,6 +314,33 @@
         <h2 style="color: var(--purple); margin: 0 0 8px 0; font-size: 22px; font-weight: 800;">任务达成！</h2>
         <p id="modal-reward-msg" style="color: #444; font-size: 14px; margin: 0 0 25px 0; font-weight: 600; line-height: 1.4;"></p>
         <button onclick="closeRewardModal()" style="width: 60%; max-width: 200px; height: 44px; border-radius: 22px; border: none; background: var(--pink); color: white; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">领取奖励 🍦</button>
+    </div>
+
+    <div id="focus-mode-modal" class="reward-modal">
+        <img src="https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg" alt="Naong Ready">
+        <div class="mode-panel">
+            <h2 style="color: var(--purple); margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">选择本轮专注方式</h2>
+            <p style="color:#555; font-size:12px; margin:0; font-weight:600; line-height:1.5;">熄屏学习会在你回到页面时弹出结算提示，不会再悄悄扣完整度。</p>
+            <div class="mode-grid">
+                <button class="mode-choice primary" onclick="beginFocusWithScreenOff(true)">
+                    <strong>🌙 熄屏学习模式</strong>
+                    <span>前台 100%，标准熄屏 90%，中断后熄屏 80%，单次最多 90 分钟。</span>
+                </button>
+                <button class="mode-choice" onclick="beginFocusWithScreenOff(false)">
+                    <strong>📖 前台陪读模式</strong>
+                    <span>只统计页面可见时间，离开页面会记录切屏但不计入有效学习。</span>
+                </button>
+                <button class="btn-appeal-option" onclick="closeFocusModeModal()">再想想</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screenoff-return-modal" class="reward-modal">
+        <img src="https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" alt="Naong Check">
+        <h2 style="color: var(--purple); margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">欢迎回来，来对账</h2>
+        <div id="screenoff-return-summary" class="screenoff-summary"></div>
+        <p style="color:#555; font-size:12px; margin:0 0 14px 0; font-weight:600; line-height:1.5;">这次离开已经写入本轮记录。继续学习时，计时器会按有效时间继续推进。</p>
+        <button onclick="closeScreenOffReturnModal()" style="width: 70%; max-width: 220px; height: 42px; border-radius: 21px; border: none; background: var(--purple); color: white; font-size: 14px; font-weight: bold;">继续专注</button>
     </div>
 
     <!-- 诚实对账协议 -->
@@ -499,8 +546,7 @@
             }
             
             if (isRunning) {
-                let now = Date.now();
-                let elapsedMs = now - state.focusStartTime;
+                let elapsedMs = state.currentStatus === 'Meditating' ? Date.now() - state.focusStartTime : getEffectiveFocusSeconds() * 1000;
                 let expectedMs = state.focusExpectedMinutes * 60 * 1000;
                 
                 if (elapsedMs >= expectedMs) {
@@ -568,8 +614,7 @@
                 sliderEl.disabled = isRunning;
                 
                 if (isRunning) {
-                    let now = Date.now();
-                    let elapsedMins = (now - state.focusStartTime) / 60000;
+                    let elapsedMins = state.currentStatus === 'Meditating' ? (Date.now() - state.focusStartTime) / 60000 : getEffectiveFocusSeconds() / 60;
                     if (elapsedMins >= state.focusExpectedMinutes) {
                         btnContainer.innerHTML = `<button id="action-btn" class="main-btn complete" onclick="completeFocus()">✨ 圆满结束 (打包收下全部奖励)</button>`;
                     } else {
@@ -601,9 +646,45 @@
             if (actionBtn && !isRunning) { actionBtn.innerText = `开启锁机专注 (${val}分钟)`; }
         }
 
-        function handleMainAction() { if(!isRunning && !state.isLocked) { startFocus(); } }
+        function handleMainAction() {
+            if (!isRunning && !state.isLocked) {
+                document.getElementById('focus-mode-modal').style.display = 'flex';
+            }
+        }
 
-        function startFocus() {
+        function closeFocusModeModal() {
+            document.getElementById('focus-mode-modal').style.display = 'none';
+        }
+
+        function beginFocusWithScreenOff(enabled) {
+            document.getElementById('focus-mode-modal').style.display = 'none';
+            startFocus(enabled);
+        }
+
+        function showScreenOffReturnModal(record) {
+            let rateText = record.rate > 0 ? `${Math.round(record.rate * 100)}%` : "0%";
+            let effectiveSeconds = record.creditedSeconds * record.rate;
+            let typeText = record.type === 'screenOffClean' ? "标准熄屏学习" :
+                record.type === 'screenOffInterrupted' ? "中断后熄屏学习" : "普通切屏离开";
+            let summary = [
+                `离开时长：${formatSecondsToHumanReadable(record.duration)}`,
+                `记录类型：${typeText}`,
+                `折算比例：${rateText}`,
+                `本次有效：${formatSecondsToHumanReadable(effectiveSeconds)}`,
+                `本轮切屏：${state.focusSwitchCount || 0} 次`
+            ];
+            if (record.type === 'background') {
+                summary.splice(3, 1, `本次有效：0分钟（未开启熄屏学习）`);
+            }
+            document.getElementById('screenoff-return-summary').innerText = summary.join('\n');
+            document.getElementById('screenoff-return-modal').style.display = 'flex';
+        }
+
+        function closeScreenOffReturnModal() {
+            document.getElementById('screenoff-return-modal').style.display = 'none';
+        }
+
+        function startFocus(screenOffEnabled = false) {
             ensureSystemValid(); 
             isRunning = true; 
             focusIntegrity = 100;
@@ -618,11 +699,7 @@
             state.focusSwitchCount = 0;
             state.screenOffReturnCount = 0;
             state.lastTickTime = Date.now();
-            if (state.currentStatus !== 'Meditating') {
-                state.screenOffMode = confirm("是否开启熄屏学习模式？\n\n开启后：\n- 前台学习按 100% 计入\n- 标准熄屏学习按 90% 计入\n- 熄屏中短暂回到页面再继续按 80% 计入\n- 单次熄屏最多按 90 分钟结算\n\n如果不开启，离开页面不会计入有效学习时间。");
-            } else {
-                state.screenOffMode = false;
-            }
+            state.screenOffMode = state.currentStatus !== 'Meditating' && !!screenOffEnabled;
             
             state.focusStartTime = Date.now();
             state.focusExpectedMinutes = currentFocusDuration;
@@ -746,7 +823,14 @@
                 state.lastTickTime = now;
 
                 saveState();
-                analyzeBehaviorWindow();
+                showScreenOffReturnModal(currentItem);
+                if (state.screenOffMode) {
+                    focusIntegrity = Math.min(100, getSwitchIntegrity());
+                    document.getElementById('integrity-text').innerText = `专注完整度: ${focusIntegrity}%`;
+                    updateUI();
+                } else {
+                    analyzeBehaviorWindow();
+                }
             }
         }
 
@@ -913,7 +997,7 @@
                 document.getElementById('timer-text').classList.remove('overtime');
                 document.getElementById('cheat-indicator').style.display = 'none';
                 
-                document.getElementById('button-container').innerHTML = `<button id="action-btn" class="main-btn" onclick="startFocus()">🔥 直接开始下一轮连轴转专注</button>`;
+                document.getElementById('button-container').innerHTML = `<button id="action-btn" class="main-btn" onclick="handleMainAction()">🔥 直接开始下一轮连轴转专注</button>`;
             }
         }
 
