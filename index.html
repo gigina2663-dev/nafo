@@ -335,6 +335,45 @@
             return formatSecondsToHumanReadable(Math.round(minutes * 60));
         }
 
+        function getEffectiveFocusSeconds() {
+            let foreground = state.foregroundFocusSeconds || 0;
+            let cleanScreenOff = state.cleanScreenOffSeconds || 0;
+            let interruptedScreenOff = state.interruptedScreenOffSeconds || 0;
+            return foreground + cleanScreenOff * 0.9 + interruptedScreenOff * 0.8;
+        }
+
+        function getCompletionRatio() {
+            let expected = Math.max(1, (state.focusExpectedMinutes || currentFocusDuration || 25) * 60);
+            return getEffectiveFocusSeconds() / expected;
+        }
+
+        function recordForegroundTick() {
+            if (!isRunning || document.hidden || state.isLocked) return;
+            let now = Date.now();
+            if (!state.lastTickTime) {
+                state.lastTickTime = now;
+                return;
+            }
+            let delta = Math.max(0, Math.min((now - state.lastTickTime) / 1000, 2));
+            state.foregroundFocusSeconds = (state.foregroundFocusSeconds || 0) + delta;
+            state.lastTickTime = now;
+        }
+
+        function getSwitchIntegrity() {
+            let count = state.focusSwitchCount || 0;
+            if (count <= 0) return 100;
+            if (count === 1) return 98;
+            if (count === 2) return 95;
+            if (count === 3) return 90;
+            return 80;
+        }
+
+        function getRewardMultiplier(ratio) {
+            if (ratio < 1.2) return 1;
+            if (ratio < 1.5) return 1.1;
+            return 1.2;
+        }
+
         let state = {
             iceCreams: parseFloat(localStorage.getItem('iceCreams')) || 10.0,
             totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
@@ -365,6 +404,15 @@
             leaveTime: parseInt(localStorage.getItem('leaveTime')) || 0,
             returnTime: parseInt(localStorage.getItem('returnTime')) || 0,
             trustScore: parseInt(localStorage.getItem('trustScore')) || 100, 
+            foregroundFocusSeconds: parseFloat(localStorage.getItem('foregroundFocusSeconds')) || 0,
+            cleanScreenOffSeconds: parseFloat(localStorage.getItem('cleanScreenOffSeconds')) || 0,
+            interruptedScreenOffSeconds: parseFloat(localStorage.getItem('interruptedScreenOffSeconds')) || 0,
+            nonCreditedBackgroundSeconds: parseFloat(localStorage.getItem('nonCreditedBackgroundSeconds')) || 0,
+            focusSwitchCount: parseInt(localStorage.getItem('focusSwitchCount')) || 0,
+            screenOffMode: localStorage.getItem('screenOffMode') === 'true',
+            screenOffReturnCount: parseInt(localStorage.getItem('screenOffReturnCount')) || 0,
+            lastTickTime: parseInt(localStorage.getItem('lastTickTime')) || 0,
+            todayScreenOffRewardSeconds: parseFloat(localStorage.getItem('todayScreenOffRewardSeconds')) || 0,
             behaviorBuffer: [] 
         };
 
@@ -382,6 +430,7 @@
             if (state.currentStatus === 'Studying' || state.currentStatus === 'Meditating') {
                 isRunning = true;
                 currentFocusDuration = state.focusExpectedMinutes;
+                state.lastTickTime = Date.now();
                 document.getElementById('timer-slider').value = currentFocusDuration;
                 document.getElementById('cheat-indicator').style.display = 'block';
                 document.getElementById('integrity-text').style.display = 'block';
@@ -419,6 +468,7 @@
                 state.todayCompletedSessions = 0;
                 state.dailyForgivenCount = 0; 
                 state.rewarded6H = false; state.rewarded8H = false; state.rewarded10H = false;
+                state.todayScreenOffRewardSeconds = 0;
                 state.lastDate = today;
                 state.behaviorBuffer = [];
                 state.leaveTime = 0;
@@ -561,6 +611,18 @@
             state.behaviorBuffer = [];
             state.leaveTime = 0;
             state.returnTime = 0;
+            state.foregroundFocusSeconds = 0;
+            state.cleanScreenOffSeconds = 0;
+            state.interruptedScreenOffSeconds = 0;
+            state.nonCreditedBackgroundSeconds = 0;
+            state.focusSwitchCount = 0;
+            state.screenOffReturnCount = 0;
+            state.lastTickTime = Date.now();
+            if (state.currentStatus !== 'Meditating') {
+                state.screenOffMode = confirm("是否开启熄屏学习模式？\n\n开启后：\n- 前台学习按 100% 计入\n- 标准熄屏学习按 90% 计入\n- 熄屏中短暂回到页面再继续按 80% 计入\n- 单次熄屏最多按 90 分钟结算\n\n如果不开启，离开页面不会计入有效学习时间。");
+            } else {
+                state.screenOffMode = false;
+            }
             
             state.focusStartTime = Date.now();
             state.focusExpectedMinutes = currentFocusDuration;
@@ -584,8 +646,8 @@
             timerInterval = setInterval(() => {
                 ensureSystemValid();
 
-                let now = Date.now();
-                let elapsedMs = now - state.focusStartTime;
+                recordForegroundTick();
+                let elapsedMs = state.currentStatus === 'Meditating' ? Date.now() - state.focusStartTime : getEffectiveFocusSeconds() * 1000;
                 let expectedMs = state.focusExpectedMinutes * 60 * 1000;
 
                 renderPetState();
@@ -627,12 +689,15 @@
             let now = Date.now();
 
             if (document.hidden) { 
+                recordForegroundTick();
                 state.leaveTime = now; 
+                state.lastTickTime = now;
                 saveState();
             } else if (state.leaveTime > 0) {
                 state.returnTime = now;
                 
                 let backgroundSeconds = Math.round((state.returnTime - state.leaveTime) / 1000);
+                state.focusSwitchCount = (state.focusSwitchCount || 0) + 1;
                 
                 let foregroundSeconds = 0;
                 let lastRecord = state.behaviorBuffer[state.behaviorBuffer.length - 1];
@@ -642,15 +707,43 @@
                     foregroundSeconds = Math.round((state.leaveTime - state.focusStartTime) / 1000);
                 }
 
+                let creditedSeconds = 0;
+                let creditRate = 0;
+                let recordType = 'background';
+                if (state.screenOffMode) {
+                    let singleCap = 90 * 60;
+                    let dailyCap = 240 * 60;
+                    let cappedSeconds = Math.min(backgroundSeconds, singleCap);
+                    let dailyLeft = Math.max(0, dailyCap - (state.todayScreenOffRewardSeconds || 0));
+                    let rewardableSeconds = Math.min(cappedSeconds, dailyLeft);
+                    creditRate = (state.screenOffReturnCount || 0) === 0 ? 0.9 : 0.8;
+                    creditedSeconds = rewardableSeconds;
+                    if (creditRate === 0.9) {
+                        state.cleanScreenOffSeconds = (state.cleanScreenOffSeconds || 0) + rewardableSeconds;
+                        recordType = 'screenOffClean';
+                    } else {
+                        state.interruptedScreenOffSeconds = (state.interruptedScreenOffSeconds || 0) + rewardableSeconds;
+                        recordType = 'screenOffInterrupted';
+                    }
+                    state.todayScreenOffRewardSeconds = (state.todayScreenOffRewardSeconds || 0) + rewardableSeconds;
+                    state.screenOffReturnCount = (state.screenOffReturnCount || 0) + 1;
+                } else {
+                    state.nonCreditedBackgroundSeconds = (state.nonCreditedBackgroundSeconds || 0) + backgroundSeconds;
+                }
+
                 let currentItem = {
                     leaveTime: state.leaveTime,
                     returnTime: state.returnTime,
                     duration: backgroundSeconds,
-                    foregroundDuration: foregroundSeconds
+                    foregroundDuration: foregroundSeconds,
+                    type: recordType,
+                    rate: creditRate,
+                    creditedSeconds: creditedSeconds
                 };
                 
                 state.behaviorBuffer.push(currentItem);
                 state.leaveTime = 0; 
+                state.lastTickTime = now;
 
                 saveState();
                 analyzeBehaviorWindow();
@@ -748,13 +841,23 @@
         }
 
         function completeFocus() {
+            recordForegroundTick();
+            let effectiveSecondsForCheck = getEffectiveFocusSeconds();
+            let expectedSecondsForCheck = state.focusExpectedMinutes * 60;
+            if (state.currentStatus !== 'Meditating' && !state.isLocked && effectiveSecondsForCheck < expectedSecondsForCheck) {
+                let percent = Math.floor((effectiveSecondsForCheck / Math.max(1, expectedSecondsForCheck)) * 100);
+                alert(`还没有达到本轮目标。\n\n当前有效时间：${formatSecondsToHumanReadable(effectiveSecondsForCheck)}\n目标时间：${formatMinutesToHumanReadable(state.focusExpectedMinutes)}\n完成比例：${percent}%`);
+                saveState();
+                updateUI();
+                return;
+            }
+
             clearInterval(timerInterval);
             isRunning = false; 
             document.getElementById('cheat-indicator').style.display = 'none';
             document.getElementById('integrity-text').style.display = 'none';
 
-            let now = Date.now();
-            let totalElapsedSeconds = (now - state.focusStartTime) / 1000;
+            let totalElapsedSeconds = getEffectiveFocusSeconds();
             
             // 🔥【重大修复】在这里设置了智能过滤器：
             // 只有单次小于 5 分钟 (300秒) 的隐藏才会累计作为“开小差分心时间”被扣除。
@@ -766,7 +869,7 @@
                 }, 0);
             }
             
-            let trueFocusedSeconds = Math.max(0, totalElapsedSeconds - totalBgSecondsInSession);
+            let trueFocusedSeconds = Math.max(0, totalElapsedSeconds);
             let realElapsedMinutes = parseFloat((trueFocusedSeconds / 60).toFixed(2));
             
             if (state.currentStatus === 'Meditating' || state.isLocked) {
@@ -777,8 +880,12 @@
             } else {
                 state.currentStatus = 'Completed';
                 
+                let completionRatio = getCompletionRatio();
+                let switchIntegrity = getSwitchIntegrity();
+                focusIntegrity = Math.min(focusIntegrity, switchIntegrity);
+                let rewardMultiplier = getRewardMultiplier(completionRatio);
                 let baseEarned = parseFloat(((realElapsedMinutes / 60) * 5).toFixed(2));
-                let finalEarned = parseFloat((baseEarned * (focusIntegrity / 100)).toFixed(2));
+                let finalEarned = parseFloat((baseEarned * rewardMultiplier * (focusIntegrity / 100)).toFixed(2));
                 
                 state.iceCreams += finalEarned;
                 state.todayFocusMinutes += realElapsedMinutes;
@@ -789,7 +896,16 @@
 
                 checkMilestone();
                 
-                document.getElementById('modal-reward-msg').innerText = `这一节太厉害了！你实际坚守了 ${formatMinutesToHumanReadable(realElapsedMinutes)}！\n(已智能保留长周期锁屏深读时间)\n由于专注完整度为 ${focusIntegrity}%，\n拿拿特为你发放 ${finalEarned} 🍦 冰激凌代币奖励！`;
+                let settleLines = [
+                    `任务达成！`,
+                    `切屏次数：${state.focusSwitchCount || 0} 次`,
+                    `有效时间：${formatMinutesToHumanReadable(realElapsedMinutes)} / 目标 ${formatMinutesToHumanReadable(state.focusExpectedMinutes)}`,
+                    `完成比例：${Math.floor(completionRatio * 100)}%`,
+                    `折算明细：前台 ${formatSecondsToHumanReadable(state.foregroundFocusSeconds || 0)} x100%，标准熄屏 ${formatSecondsToHumanReadable(state.cleanScreenOffSeconds || 0)} x90%，中断熄屏 ${formatSecondsToHumanReadable(state.interruptedScreenOffSeconds || 0)} x80%`,
+                    `专注完整度：${focusIntegrity}%`,
+                    `本轮奖励：${finalEarned} 馃崷`
+                ];
+                document.getElementById('modal-reward-msg').innerText = settleLines.join('\n');
                 document.getElementById('reward-modal').style.display = 'flex';
                 
                 let sliderEl = document.getElementById('timer-slider');
@@ -818,6 +934,14 @@
 
         function abortFocus() {
             state.behaviorBuffer = [];
+            state.foregroundFocusSeconds = 0;
+            state.cleanScreenOffSeconds = 0;
+            state.interruptedScreenOffSeconds = 0;
+            state.nonCreditedBackgroundSeconds = 0;
+            state.focusSwitchCount = 0;
+            state.screenOffMode = false;
+            state.screenOffReturnCount = 0;
+            state.lastTickTime = 0;
             clearInterval(timerInterval);
             isRunning = false; 
             document.getElementById('cheat-indicator').style.display = 'none';
