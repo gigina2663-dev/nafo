@@ -690,6 +690,7 @@
             let now = new Date();
             let diff = TARGET_DATE - now;
             let el = document.getElementById('countdown-day');
+            if (!el) return;
             if (diff <= 0) {
                 el.innerText = "🎯 祝上岸！";
                 return;
@@ -794,7 +795,7 @@
             document.getElementById('cheat-indicator').style.display = 'block';
             document.getElementById('cheat-indicator').innerText = "⏳ 拿拿正在前台认真陪读中...";
             document.getElementById('cheat-indicator').classList.remove('overtime');
-            document.getElementById('timer-display').classList.remove('overtime');
+            document.getElementById('timer-text').classList.remove('overtime');
             
             let subjectNames = { math: '数学', english: '英语', pro: '专业课', politics: '政治' };
             document.getElementById('action-btn').innerText = `放弃当前专注 [${subjectNames[currentSubject]}]`;
@@ -890,14 +891,11 @@
             }
         }
 
-        function closeScreenOffReturnModal() {
-            document.getElementById('screenoff-return-modal').style.display = 'none';
-        }
-
         // --- 核心清算机制 ---
         function updateTimerUI() {
             let tText = document.getElementById('timer-text');
             let iText = document.getElementById('integrity-text');
+            if (!tText || !iText) return;
             
             if (totalSecondsLeft >= 0) {
                 let m = String(Math.floor(totalSecondsLeft / 60)).padStart(2, '0');
@@ -983,7 +981,7 @@
                 // 白嫖时间按1.5倍权重计算
                 earnedIceCream = (baseMin * (finalIntegrity / 100)) + (overMin * 1.5);
             } else {
-                // 未满额但点击完成（通常在白嫖之后或倒计时未到但系统判定，倒计时未到不可点击完成）
+                // 未满额但点击完成
                 let elapsed = Math.floor((now - (isScreenOffMode ? screenOff_startTime : now)) / 1000);
                 effectiveMinutes = Math.floor(elapsed / 60);
                 earnedIceCream = effectiveMinutes * (finalIntegrity / 100);
@@ -1023,22 +1021,6 @@
             resetFocusUI();
         }
 
-        function handleMainAction() {
-            if (isFocusing) {
-                if (totalSecondsLeft <= 0) {
-                    // 已完成基础时间，此时点击属于“正常收尾结算”
-                    handleMainActionComplete();
-                } else {
-                    // 属于未完成基础时间的强制放弃
-                    if (confirm("确定要强行放弃吗？这会让拿拿非常伤心，并被关进小黑屋！")) {
-                        executeAbortPunishment();
-                    }
-                }
-            } else {
-                document.getElementById('focus-mode-modal').style.display = 'flex';
-            }
-        }
-
         function resetFocusUI() {
             document.getElementById('timer-slider').disabled = false;
             document.getElementById('timer-slider').value = 25;
@@ -1055,6 +1037,10 @@
             document.getElementById('pet-msg').innerText = "📚 刚刚的自律太棒啦！看会书休息下，准备下一轮吧～";
             
             updateGlobalUI();
+        }
+
+        function closeScreenOffReturnModal() {
+            document.getElementById('screenoff-return-modal').style.display = 'none';
         }
 
         // --- 苦修面壁系统 ---
@@ -1172,13 +1158,14 @@
             let timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             let logItem = { time: timeStr, tag: tag, desc: text };
             historyLogs.unshift(logItem);
-            if (historyLogs.length > 100) historyLogs.pop(); // 限制历史条数，防止撑爆
+            if (historyLogs.length > 100) historyLogs.pop(); 
             localStorage.setItem('historyLogs', JSON.stringify(historyLogs));
             renderHistoryLogs();
         }
 
         function renderHistoryLogs() {
             let list = document.getElementById('history-list');
+            if (!list) return;
             list.innerHTML = "";
             if (historyLogs.length === 0) {
                 list.innerHTML = `<div style="text-align:center; color:#888; padding:15px; font-size:11px;">这里空空如也，历史档案静候你的自律足迹。</div>`;
@@ -1233,21 +1220,23 @@
             document.getElementById('cnt-t').innerText = exchangeCounts.Toy || 0;
             document.getElementById('cnt-cl').innerText = exchangeCounts.Clothes || 0;
 
-            // 渲染今日科目占比进度条（针对要求3扩展）
+            // 渲染今日科目占比进度条
             let totalSubjectMin = Object.values(subjectStats).reduce((a, b) => a + b, 0) || 1;
             ['math', 'english', 'pro', 'politics'].forEach(sub => {
                 let min = subjectStats[sub] || 0;
                 let pct = Math.round((min / totalSubjectMin) * 100);
-                document.getElementById(`bar-${sub}`).style.width = `${pct}%`;
-                document.getElementById(`val-${sub}`).innerText = `${min}分钟 (${pct}%)`;
+                let bar = document.getElementById(`bar-${sub}`);
+                let val = document.getElementById(`val-${sub}`);
+                if(bar) bar.style.width = `${pct}%`;
+                if(val) val.innerText = `${min}分钟 (${pct}%)`;
             });
 
             renderHistoryLogs();
         }
 
-        // --- 视图切切换与历史隔离 ---
+        // --- 视图切换与历史隔离 ---
         function switchTab(viewId, tabBtn) {
-            if (isFocusing && viewId !== 'view-focus') return; // 锁机时全面阻断切出
+            if (isFocusing && viewId !== 'view-focus') return; 
 
             document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
@@ -1255,7 +1244,6 @@
             document.getElementById(viewId).classList.add('active');
             tabBtn.classList.add('active');
             
-            // 切回主页自动同步
             updateGlobalUI();
         }
 
