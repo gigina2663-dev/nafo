@@ -503,21 +503,118 @@
         const TARGET_DATE = new Date("2026-12-20T00:00:00");
 
         // 从本地存储读取用户已有记录，严禁删除用户历史
-        let globalIceCream = parseFloat(localStorage.getItem('globalIceCream')) || 10.0;
-        let stats = JSON.parse(localStorage.getItem('focusStats')) || {
-            todayTime: 0,
-            totalTime: 0,
-            bgCount: 0,
-            bgTime: 0,
-            avgIntegrity: 100,
-            focusCount: 0,
-            lastDate: new Date().toDateString()
-        };
-        let notes = localStorage.getItem('todayNotes') || "";
-        let historyLogs = JSON.parse(localStorage.getItem('historyLogs')) || [];
-        let exchangeCounts = JSON.parse(localStorage.getItem('exchangeCounts')) || { MilkTea: 0, Chicken: 0, Toy: 0, Clothes: 0 };
-        let ultimateWishName = localStorage.getItem('ultimateWishName') || "终极上岸愿望基金";
-        
+        // 从本地存储读取用户已有记录（兼容旧版拿拿 Focus 数据）
+
+// 冰激凌数量：优先读取代码1，新版本不存在则读取原代码
+let globalIceCream =
+    parseFloat(localStorage.getItem('globalIceCream'))
+    ||
+    parseFloat(localStorage.getItem('iceCreams'))
+    ||
+    10.0;
+
+
+// 学习统计：兼容原版 localStorage
+let stats =
+    JSON.parse(localStorage.getItem('focusStats'))
+    ||
+    {
+        todayTime:
+            parseFloat(localStorage.getItem('todayFocusMinutes'))
+            ||
+            0,
+
+        totalTime:
+            parseFloat(localStorage.getItem('totalFocusMinutes'))
+            ||
+            0,
+
+        bgCount:
+            parseInt(localStorage.getItem('todayBackgroundCount'))
+            ||
+            0,
+
+        bgTime:
+            parseInt(localStorage.getItem('todayBackgroundSeconds'))
+            ||
+            0,
+
+        avgIntegrity:
+            100,
+
+        focusCount:
+            parseInt(localStorage.getItem('todayCompletedSessions'))
+            ||
+            0,
+
+        lastDate:
+            localStorage.getItem('lastDate')
+            ||
+            new Date().toDateString()
+    };
+
+
+// 今日复盘：兼容原版 dailyLogs
+let notes =
+    localStorage.getItem('todayNotes')
+    ||
+    (() => {
+        try {
+            let logs = JSON.parse(localStorage.getItem('dailyLogs')) || {};
+            let today = new Date();
+            let key =
+                today.getFullYear()
+                + "-"
+                + String(today.getMonth()+1).padStart(2,'0')
+                + "-"
+                + String(today.getDate()).padStart(2,'0');
+
+            return logs[key] || "";
+        } catch(e) {
+            return "";
+        }
+    })();
+
+
+// 历史日志：兼容原版
+let historyLogs =
+    JSON.parse(localStorage.getItem('historyLogs'))
+    ||
+    [];
+
+
+// 奖励兑换次数：兼容原版
+let exchangeCounts =
+    JSON.parse(localStorage.getItem('exchangeCounts'))
+    ||
+    {
+        MilkTea:
+            parseInt(localStorage.getItem('countMilkTea'))
+            ||
+            0,
+
+        Chicken:
+            parseInt(localStorage.getItem('countChicken'))
+            ||
+            0,
+
+        Toy:
+            parseInt(localStorage.getItem('countToy'))
+            ||
+            0,
+
+        Clothes:
+            parseInt(localStorage.getItem('countClothes'))
+            ||
+            0
+    };
+
+
+// 终极愿望名称
+let ultimateWishName =
+    localStorage.getItem('ultimateWishName')
+    ||
+    "终极上岸愿望基金";
         // 新增：科目时长结构（存储分钟数）
         let subjectStats = JSON.parse(localStorage.getItem('subjectStats')) || {
             math: 0, english: 0, pro: 0, politics: 0
