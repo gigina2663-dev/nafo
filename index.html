@@ -879,10 +879,10 @@ let stats = JSON.parse(localStorage.getItem('focusStats')) || {
             }, 1000);
 
             let msgMap = {
-                math: "📐 拿拿把草稿纸给你垫好啦，专心算题，不要怕高数！",
-                english: "🔤 长难句不要漏掉哦，拿拿陪你一起啃下这篇真题阅读！",
-                pro: "🔮 专业课的知识框架很关键！拿拿正托着腮帮子看你默写呢～",
-                politics: "🇨🇳 紧跟时政，拿拿为你竖起大拇指！点滴积累终能上岸！"
+                math: "👩🏻‍🎓 拿拿把草稿纸给你垫好啦，专心算题，不要怕高数！",
+                english: "👩🏻‍🏫 长难句不要漏掉哦，拿拿陪你一起啃下这篇真题阅读！",
+                pro: "👩🏻‍💼 专业课的知识框架很关键！拿拿正托着腮帮子看你默写呢～",
+                politics: "👩🏻‍💼 紧跟时政，拿拿为你竖起大拇指！点滴积累终能上岸！"
             };
             document.getElementById('pet-img').src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg";
             document.getElementById('pet-msg').innerText = msgMap[currentSubject];
@@ -1095,8 +1095,43 @@ let stats = JSON.parse(localStorage.getItem('focusStats')) || {
         }
 
         function closeScreenOffReturnModal() {
-            document.getElementById('screenoff-return-modal').style.display = 'none';
+    // 1. 关闭对账结算弹窗
+    document.getElementById('screenoff-return-modal').style.display = 'none';
+    
+    // 🛠️【状态同步修复】如果正在专注中，立刻强行刷新外面的大文字和进度条滑块
+    if (isRunning) {
+        // 获取本轮目前为止的有效总秒数与预期的总秒数
+        let effectiveSeconds = getEffectiveFocusSeconds(); 
+        let expectedSeconds = state.focusExpectedMinutes * 60;
+        
+        if (effectiveSeconds < expectedSeconds) {
+            // 计算还剩下多少秒
+            let remainingSeconds = expectedSeconds - effectiveSeconds;
+            let mins = Math.floor(remainingSeconds / 60);
+            let secs = Math.floor(remainingSeconds % 60);
+            
+            // 强行更新外面的倒计时大文字（防止卡住）
+            let timerTextEl = document.getElementById('timer-text');
+            if (timerTextEl) {
+                timerTextEl.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            }
+            
+            // 强行让进度条（滑块）缩短到对应的分钟位置
+            let sliderEl = document.getElementById('timer-slider');
+            if (sliderEl) {
+                // 向上取整，反映剩余的专注分钟数进度
+                sliderEl.value = Math.ceil(remainingSeconds / 60);
+            }
         }
+        
+        // 重新对齐时间戳，激活轮询器继续往下走
+        state.lastTickTime = Date.now(); 
+        if (typeof runTimerLoop === 'function') {
+            runTimerLoop();
+        }
+    }
+}
+
 
         // --- 苦修面壁系统 ---
         function resumeMeditation() {
