@@ -621,6 +621,26 @@ let stats = JSON.parse(localStorage.getItem('focusStats')) || {
         };
 
         // --- 跨天重置与夜间机制（满足需求2） ---
+        // 🛠️【终极补丁：强行拦截并美化总累计时间，消灭超长小数点】
+setInterval(() => {
+    let totalTimeEl = document.getElementById('total-time');
+    if (totalTimeEl && stats && stats.totalTime) {
+        let totalMins = parseFloat(stats.totalTime) || 0;
+        // 如果发现数字被污染成了长浮点数，或者还没被格式化
+        if (stats.totalTime.toString().includes('.') && !totalTimeEl.innerText.includes('小时')) {
+            let totalTimeStr = "";
+            if (totalMins < 60) {
+                totalTimeStr = Math.round(totalMins) + "分钟";
+            } else {
+                let hrs = Math.floor(totalMins / 60);
+                let mins = Math.round(totalMins % 60);
+                totalTimeStr = `${hrs}小时${mins}分钟`;
+            }
+            totalTimeEl.innerText = totalTimeStr;
+        }
+    }
+}, 1000); // 每秒强行修正一次，不管哪个函数渲染的，只要敢变乱就立刻切碎它
+
         function checkDailyReset() {
             let todayStr = new Date().toDateString();
             if (stats.lastDate !== todayStr) {
@@ -1093,41 +1113,46 @@ let stats = JSON.parse(localStorage.getItem('focusStats')) || {
             
             updateGlobalUI();
         }
-
-        function closeScreenOffReturnModal() {
+function closeScreenOffReturnModal() {
     // 1. 关闭对账结算弹窗
     document.getElementById('screenoff-return-modal').style.display = 'none';
     
-    // 🛠️【状态同步修复】如果正在专注中，立刻强行刷新外面的大文字和进度条滑块
-    if (isRunning) {
-        // 获取本轮目前为止的有效总秒数与预期的总秒数
-        let effectiveSeconds = getEffectiveFocusSeconds(); 
-        let expectedSeconds = state.focusExpectedMinutes * 60;
-        
-        if (effectiveSeconds < expectedSeconds) {
-            // 计算还剩下多少秒
-            let remainingSeconds = expectedSeconds - effectiveSeconds;
+    // 2. 🛠️【核心修复】强行扣除倒计时时间并同步进度条
+    if (isFocusing) {
+        // 计算自本轮专注开始以来，过去的所有真实总秒数（包含刚刚结算进去的页面不可见时间）
+        let totalElapsedSeconds = Math.floor((new Date() - startTime) / 1000);
+        let expectedTotalSeconds = totalFocusDuration * 60;
+
+        if (totalElapsedSeconds < expectedTotalSeconds) {
+            // 重新计算本轮还剩下多少秒
+            let remainingSeconds = expectedTotalSeconds - totalElapsedSeconds;
+            
+            // 关键一步：把新代码底层控制倒计时的核心变量（通常是 countdownSeconds 或 remainingSeconds）同步更新
+            // 💡 请注意：如果你的代码 1 底层倒计时变量不叫 countdownSeconds，请把下面这行的变量名改成你代码 1 实际使用的变量名
+            if (typeof countdownSeconds !== 'undefined') {
+                countdownSeconds = remainingSeconds;
+            } else if (typeof secondsLeft !== 'undefined') {
+                secondsLeft = remainingSeconds;
+            }
+
+            // 立刻强行刷新界面上的数字
             let mins = Math.floor(remainingSeconds / 60);
             let secs = Math.floor(remainingSeconds % 60);
-            
-            // 强行更新外面的倒计时大文字（防止卡住）
             let timerTextEl = document.getElementById('timer-text');
             if (timerTextEl) {
                 timerTextEl.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
             }
             
-            // 强行让进度条（滑块）缩短到对应的分钟位置
+            // 立刻强行刷新滑块进度条
             let sliderEl = document.getElementById('timer-slider');
             if (sliderEl) {
-                // 向上取整，反映剩余的专注分钟数进度
                 sliderEl.value = Math.ceil(remainingSeconds / 60);
             }
-        }
-        
-        // 重新对齐时间戳，激活轮询器继续往下走
-        state.lastTickTime = Date.now(); 
-        if (typeof runTimerLoop === 'function') {
-            runTimerLoop();
+        } else {
+            // 如果在后台呆的时间太长，有效时间已经把这轮专注扣光了，直接触发完成结算
+            if (typeof handleMainActionComplete === 'function') {
+                handleMainActionComplete();
+            }
         }
     }
 }
