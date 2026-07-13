@@ -880,10 +880,39 @@ setInterval(() => {
             document.querySelector('.tab-bar').classList.add('hidden-lock');
 
             // 针对锁屏学习模式，设置基准预期线
-            if (isScreenOffMode) {
-                screenOff_startTime = new Date();
-                screenOff_expectedEndTime = new Date(screenOff_startTime.getTime() + totalSecondsLeft * 1000);
+                        if (isScreenOffMode) {
+                // 📍【熄屏模式对账核心校准】
+                let now = new Date();
+                // 计算自熄屏（切后台）以来，实际过去了多少秒
+                let elapsedBgSeconds = Math.floor((now - bgStartTime) / 1000);
+                
+                // 🛠️【核心修复】直接扣除倒计时变量 totalSecondsLeft
+                if (typeof totalSecondsLeft !== 'undefined') {
+                    totalSecondsLeft -= elapsedBgSeconds;
+                    
+                    // 如果时间已经扣完了，直接触发完成结算
+                    if (totalSecondsLeft <= 0) {
+                        totalSecondsLeft = 0;
+                        if (typeof handleMainActionComplete === 'function') {
+                            handleMainActionComplete();
+                            return;
+                        }
+                    }
+                    
+                    // 强行调用原有的 UI 刷新函数，让外面的大数字和滑块瞬间跟着减少！
+                    if (typeof updateTimerUI === 'function') {
+                        updateTimerUI();
+                    }
+                }
+
+                let summaryEl = document.getElementById('screenoff-summary');
+                if (summaryEl) summaryEl.innerHTML = summaryStr;
+                
+                // 弹出对账遮罩层
+                let modalEl = document.getElementById('screenoff-return-modal');
+                if (modalEl) modalEl.style.display = 'block';
             }
+
 
             updateTimerUI();
             
