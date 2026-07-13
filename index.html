@@ -182,6 +182,99 @@
             backdrop-filter: blur(20px); z-index: 9998; flex-direction: column;
             align-items: center; justify-content: center; padding: 30px; text-align: center;
         }
+   /* ==========================================
+   新增：扩展功能 UI 样式（适配原系统风格）
+   ========================================== */
+
+/* 1. 科目选择与日志提醒弹窗的内部面板 */
+.custom-modal-panel {
+    width: 100%;
+    max-width: 320px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 12px 35px rgba(156, 39, 176, 0.15);
+    text-align: center;
+}
+
+/* 2. 可编辑大奖输入框样式 */
+.editable-prize-input {
+    border: none;
+    background: rgba(156, 39, 176, 0.06);
+    color: var(--purple);
+    font-size: 13px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 6px;
+    width: 150px;
+    text-align: left;
+    outline: none;
+    transition: all 0.2s;
+    border-bottom: 2px dashed var(--pink);
+}
+.editable-prize-input:focus {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 2px rgba(255, 107, 157, 0.2);
+}
+
+/* 3. 全屏历史滑出浮层 */
+.history-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)) 20px;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+.history-overlay.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.history-card-item {
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(156, 39, 176, 0.08);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+/* 4. 今日科目分析看板 */
+.subject-report-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 2px;
+}
+.subject-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 3px;
+}
+.subject-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
     </style>
 </head>
 <body>
@@ -239,10 +332,11 @@
                 <div>☀️ 今日复习</div>
                 <div id="today-time">0分钟</div>
             </div>
-            <div class="stat-card">
-                <div>⏱️ 总累计</div>
-                <div id="total-time">0分钟</div>
-            </div>
+            <div class="stat-card" onclick="openHistoryOverlay()" style="cursor: pointer; position: relative;">
+  <div>⏱️ 总累计 (点击对账)</div>
+  <div id="total-time">0分钟</div>
+</div>
+
         </div>
 
         <div class="dashboard-grid" style="margin-bottom: 4px;">
@@ -302,10 +396,18 @@
                 <div class="shop-item-info"><h4>🧸 垂涎已久的小玩意儿</h4><p>累计已兑: <span id="cnt-t">0</span> 次</p></div>
                 <button class="btn-exchange" onclick="buyWish('Toy', 1000)">1000 🍦</button>
             </div>
-            <div class="shop-card">
-                <div class="shop-item-info"><h4>👚 终极上岸愿望基金</h4><p>累计已兑: <span id="cnt-cl">0</span> 次</p></div>
-                <button class="btn-exchange" onclick="buyWish('Clothes', 2500)">2500 🍦</button>
-            </div>
+            <div class="card-box" id="subject-report-box" style="margin: 8px 0;"></div>
+
+<div class="shop-card" style="border: 1px dashed var(--pink); background: rgba(255, 107, 157, 0.05); padding: 8px; border-radius: 12px; margin-bottom: 8px; width: 100%;">
+  <div class="shop-item-info">
+    <h4 style="display: flex; align-items: center; gap: 4px; margin: 0 0 4px 0;">
+      👑 <input type="text" id="custom-prize-input" class="editable-prize-input" value="终极上岸愿望基金" onchange="saveCustomReward(this.value)" placeholder="点击输入自定义大奖">
+    </h4>
+    <p style="margin: 0; font-size: 11px; color: #666;">累计已兑: <span id="cnt-cl">0</span> 次</p>
+  </div>
+  <button class="btn-exchange" onclick="buyWish('Clothes', 2500)">2500 🍦</button>
+</div>
+
         </div>
     </div>
 
@@ -422,6 +524,19 @@
         }
 
         let state = {
+            let state = {
+  // ====== 扩展需求新增的 state 核心属性 ======
+  dailyTimeLogs: JSON.parse(localStorage.getItem('dailyTimeLogs')) || {},
+  customRewardTitle: localStorage.getItem('customRewardTitle') || '终极上岸愿望基金',
+  todayReviewChecked: localStorage.getItem('todayReviewChecked') === 'true',
+  currentSelectedSubject: localStorage.getItem('currentSelectedSubject') || '',
+  subjectMathMinutes: parseFloat(localStorage.getItem('subjectMathMinutes')) || 0.0,
+  subjectEnglishMinutes: parseFloat(localStorage.getItem('subjectEnglishMinutes')) || 0.0,
+  subjectProfessionalMinutes: parseFloat(localStorage.getItem('subjectProfessionalMinutes')) || 0.0,
+  subjectPoliticsMinutes: parseFloat(localStorage.getItem('subjectPoliticsMinutes')) || 0.0,
+
+  iceCreams: parseFloat(localStorage.getItem('iceCreams')) || 10, // 这行是原本的 527 行
+
             iceCreams: parseFloat(localStorage.getItem('iceCreams')) || 10.0,
             totalFocusMinutes: parseFloat(localStorage.getItem('totalFocusMinutes')) || 0.0,
             todayFocusMinutes: parseFloat(localStorage.getItem('todayFocusMinutes')) || 0.0,
@@ -490,7 +605,9 @@
             updateUI(); 
             calculateCountdown(); 
             updateDiaryView(); 
-            
+              renderSubjectReport();    // 初始化渲染今日科目数据看板
+  triggerLogReminderCheck(); // 检查是否需要弹出深夜日志催记
+
             document.removeEventListener("visibilitychange", handleVisibilityChange);
             document.addEventListener("visibilitychange", handleVisibilityChange); 
         }
@@ -508,6 +625,22 @@
         function ensureSystemValid() {
             let today = getTodayStr();
             if (state.lastDate !== today) {
+                    // 【新增跨天归档】：将昨日各学科明细打包
+    state.dailyTimeLogs[state.lastDate] = {
+      total: state.todayFocusMinutes,
+      math: state.subjectMathMinutes || 0,
+      english: state.subjectEnglishMinutes || 0,
+      professional: state.subjectProfessionalMinutes || 0,
+      politics: state.subjectPoliticsMinutes || 0
+    };
+    // 重置科目今日时长与深夜对账锁
+    state.todayReviewChecked = false;
+    state.currentSelectedSubject = '';
+    state.subjectMathMinutes = 0;
+    state.subjectEnglishMinutes = 0;
+    state.subjectProfessionalMinutes = 0;
+    state.subjectPoliticsMinutes = 0;
+
                 state.todayFocusMinutes = 0;
                 state.todayBackgroundCount = 0;
                 state.todayBackgroundSeconds = 0;
@@ -571,6 +704,42 @@
         }
 
         function updateUI() {
+              // ====== 【增量外挂拦截】：科目时间分流统计与日志自动前缀标注 ======
+  if (state.screenOffMode && state.currentSelectedSubject && state.todayFocusMinutes > 0) {
+    // 1. 计算本次专注产生的分钟数：由于原系统已累加进 todayFocusMinutes，我们计算差额分流给学科
+    let totalAllSubjects = (state.subjectMathMinutes || 0) + (state.subjectEnglishMinutes || 0) + (state.subjectProfessionalMinutes || 0) + (state.subjectPoliticsMinutes || 0);
+    let minutesEarned = state.todayFocusMinutes - totalAllSubjects;
+    
+    // 如果确实有新产生的有效分钟数，进行科目分流与日志打桩
+    if (minutesEarned > 0.1) {
+      let sub = state.currentSelectedSubject;
+      if (sub === '数学') state.subjectMathMinutes = (state.subjectMathMinutes || 0) + minutesEarned;
+      if (sub === '英语') state.subjectEnglishMinutes = (state.subjectEnglishMinutes || 0) + minutesEarned;
+      if (sub === '专业课') state.subjectProfessionalMinutes = (state.subjectProfessionalMinutes || 0) + minutesEarned;
+      if (sub === '政治') state.subjectPoliticsMinutes = (state.subjectPoliticsMinutes || 0) + minutesEarned;
+      
+      // 2. 自动在今日日志最前端，换行追加精准的时间科目复盘印记
+      let todayStr = getTodayStr();
+      let logBox = document.getElementById('notes-area'); // 自动适配你的 textarea 节点
+      let oldLog = logBox ? logBox.value : (state.dailyLogs[todayStr] || '');
+      let timeStampStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      
+      let stampedText = `[${timeStampStr} 专注完毕] 科目: ${sub} (${minutesEarned.toFixed(1)}分钟)\n` + oldLog;
+      
+      if (logBox) logBox.value = stampedText;
+      state.dailyLogs[todayStr] = stampedText;
+      
+      // 3. 及时清空本轮科目和熄屏标记，防止下一次刷新 UI 重复触发
+      state.currentSelectedSubject = '';
+      state.screenOffMode = false;
+      
+      // 4. 保存状态并实时更新科目效能图表看板
+      saveState();
+      renderSubjectReport();
+    }
+  }
+  // 下方紧接着继续走你原本第 707 行开始的表情和文字切换逻辑...
+
             document.getElementById('global-icecream').innerText = Number(state.iceCreams).toFixed(1);
             document.getElementById('today-time').innerText = formatMinutesToHumanReadable(state.todayFocusMinutes);
             document.getElementById('total-time').innerText = formatMinutesToHumanReadable(state.totalFocusMinutes);
@@ -1099,6 +1268,149 @@
         }
 
         window.onload = init;
+        
+// ==========================================
+// 第五部分：新增功能独立扩展扩展函数（增量追加）
+// ==========================================
+
+/**
+ * 需求 1：保存自定义终大奖名称
+ */
+function saveCustomReward(val) {
+  let cleanVal = val.trim();
+  if (!cleanVal) {
+    cleanVal = "终极上岸愿望基金";
+  }
+  state.customRewardTitle = cleanVal;
+  saveState();
+  
+  // 同步更新输入框的当前值
+  let prizeInput = document.getElementById('custom-prize-input');
+  if (prizeInput) prizeInput.value = cleanVal;
+}
+
+/**
+ * 需求 2：深夜 11 点后打开页面，触发日志催记弹窗逻辑
+ */
+function triggerLogReminderCheck() {
+  let now = new Date();
+  let hrs = now.getHours();
+  
+  // 仅在晚上 23:00 之后，且今日尚未触发核账锁的情况下弹出
+  if (hrs >= 23 && !state.todayReviewChecked) {
+    document.getElementById('log-reminder-modal').style.display = 'flex';
+  }
+}
+
+/**
+ * 需求 2：深夜日志核算并奖惩冰激凌
+ */
+function checkLogReminder() {
+  let todayStr = getTodayStr();
+  let todayNotes = state.dailyLogs[todayStr] || '';
+  
+  // 检查今日是否写了日志（非空且去空格）
+  if (todayNotes.trim()) {
+    // 有记录：奖励一个冰激凌
+    state.iceCreams += 1.0;
+    alert("📢 拿拿检查通过！今日已认真复盘，奖励 1 🍦！");
+  } else {
+    // 没记录：狠心扣除两个冰激凌
+    state.iceCreams = Math.max(0, state.iceCreams - 2.0);
+    alert("😭 拿拿很生气！今日未记录复盘日志，无情扣除 2 🍦！");
+  }
+  
+  // 激活今日对账锁，防止刷新页面重复触发弹窗
+  state.todayReviewChecked = true;
+  saveState();
+  
+  // 关闭深夜弹窗并刷新全局 UI 资产看板
+  document.getElementById('log-reminder-modal').style.display = 'none';
+  if (typeof updateUI === 'function') updateUI();
+}
+
+/**
+ * 需求 3：动态渲染今日不同科目的学习时长、占比及有效时间条形图看板
+ */
+function renderSubjectReport() {
+  let reportBox = document.getElementById('subject-report-box');
+  if (!reportBox) return;
+  
+  // 获取四门科目今日累积的有效分钟数
+  let m = state.subjectMathMinutes || 0;
+  let e = state.subjectEnglishMinutes || 0;
+  let p = state.subjectProfessionalMinutes || 0;
+  let o = state.subjectPoliticsMinutes || 0;
+  let totalSubjectMins = m + e + p + o;
+  
+  // 如果今日还没有任何科目的熄屏专注记录，展示温馨提示
+  if (totalSubjectMins <= 0) {
+    reportBox.innerHTML = `
+      <div style="font-size:11px; color:#777; text-align:center; padding:6px 0; font-weight:600;">
+        📊 今日暂无科目自习数据，开启熄屏专注后在此生成分析。
+      </div>
+    `;
+    return;
+  }
+  
+  // 计算各科目占当前总计的百分比比例
+  let mPct = ((m / totalSubjectMins) * 100).toFixed(0);
+  let ePct = ((e / totalSubjectMins) * 100).toFixed(0);
+  let pPct = ((p / totalSubjectMins) * 100).toFixed(0);
+  let oPct = ((o / totalSubjectMins) * 100).toFixed(0);
+  
+  // 动态生成符合界面风格的毛玻璃图表 UI
+  reportBox.innerHTML = `
+    <div style="margin-bottom:6px; display:flex; justify-content:space-between; font-size:12px; font-weight:bold;">
+      <span>📊 今日科目效能分析</span>
+      <span style="color:var(--purple);">总计: ${totalSubjectMins.toFixed(1)}分钟</span>
+    </div>
+    <div class="subject-report-container">
+      <div style="font-size:11px; font-weight:700; color:#333; display:flex; justify-content:space-between;">
+        <span>📐 数学 (${m.toFixed(1)}分)</span><span>${mPct}%</span>
+      </div>
+      <div class="subject-progress-bar"><div class="subject-progress-fill" style="width:${mPct}%; background:var(--purple);"></div></div>
+      
+      <div style="font-size:11px; font-weight:700; color:#333; display:flex; justify-content:space-between; margin-top:2px;">
+        <span>🔤 英语 (${e.toFixed(1)}分)</span><span>${ePct}%</span>
+      </div>
+      <div class="subject-progress-bar"><div class="subject-progress-fill" style="width:${ePct}%; background:var(--pink);"></div></div>
+      
+      <div style="font-size:11px; font-weight:700; color
     </script>
+    <div id="custom-history-overlay" class="history-overlay">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(0,0,0,0.08); padding-bottom:10px;">
+    <h2 style="font-size:16px; font-weight:800; color:var(--purple); margin:0;">📅 历史学习档案与跨天复盘</h2>
+    <button onclick="closeHistoryOverlay()" style="border:none; background:none; font-size:20px; color:#999; cursor:pointer; padding:5px 10px;">✕</button>
+  </div>
+  <div id="custom-history-list" style="flex:1; overflow-y:auto; padding-right:2px;">
+    </div>
+</div>
+
+<div id="log-reminder-modal" class="reward-modal">
+  <div class="custom-modal-panel">
+    <h2 style="color:var(--purple); font-size:18px; font-weight:800; margin:8px 0 4px 0;">⏰ 深夜自习对账提醒</h2>
+    <p style="color:#555; font-size:12px; font-weight:600; line-height:1.5; margin:0 0 16px 0;">
+      现在已经过了 23:00，拿拿来检查今天的复盘日志啦！<br>
+      <span style="color:#4caf50;">今日已写日志：奖励 1 🍦</span><br>
+      <span style="color:#e53935;">今日未写日志：无情扣除 2 🍦</span>
+    </p>
+    <button onclick="checkLogReminder()" style="width: 100%; height: 40px; border-radius: 20px; border: none; background: var(--purple); color: white; font-size: 13px; font-weight: bold;">开始核账</button>
+  </div>
+</div>
+
+<div id="subject-select-modal" class="reward-modal">
+  <div class="custom-modal-panel">
+    <h3 style="color: var(--purple); margin: 0 0 6px 0; font-size: 16px; font-weight: 800;">📚 请选择当前专注科目</h3>
+    <p style="color: #666; font-size: 11px; margin-bottom: 16px; font-weight: 600;">选择后，本轮专注的时长将精准计入该学科中。</p>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button onclick="confirmSubjectSelection('数学')" class="mode-choice" style="min-height:40px; text-align:center; font-size:13px; margin:0;">📐 数学</button>
+      <button onclick="confirmSubjectSelection('英语')" class="mode-choice" style="min-height:40px; text-align:center; font-size:13px; margin:0;">🔤 英语</button>
+      <button onclick="confirmSubjectSelection('专业课')" class="mode-choice" style="min-height:40px; text-align:center; font-size:13px; margin:0;">🧪 专业课</button>
+      <button onclick="confirmSubjectSelection('政治')" class="mode-choice" style="min-height:40px; text-align:center; font-size:13px; margin:0;">🇨🇳 政治</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
