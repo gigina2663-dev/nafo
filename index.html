@@ -150,7 +150,7 @@
         .mode-choice.primary { background: var(--purple); color: white; border-color: transparent; }
         .mode-choice.primary strong, .mode-choice.primary span { color: white; }
         .screenoff-summary {
-            width: 100%; max-width: 300px; background: rgba(156,39,176,0.06);
+            width: 100%; max-width: 300px; background: rgba(156, 39, 176, 0.06);
             border-radius: 14px; padding: 10px 12px; margin: 8px 0 12px 0;
             color: #444; font-size: 12px; font-weight: 700; line-height: 1.6; text-align: left;
         }
@@ -182,124 +182,60 @@
             backdrop-filter: blur(20px); z-index: 9998; flex-direction: column;
             align-items: center; justify-content: center; padding: 30px; text-align: center;
         }
-        /* ================= 新增：科目选择与历史独立面板样式 ================= */
-.subject-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    width: 100%;
-    margin-top: 12px;
-}
-.subject-choice {
-    min-height: 50px;
-    border-radius: 12px;
-    border: 1px solid rgba(156,39,176,0.16);
-    background: white;
-    color: #333;
-    font-weight: 700;
-    font-size: 14px;
-    box-shadow: 0 3px 10px rgba(156,39,176,0.05);
-    transition: all 0.2s ease;
-}
-.subject-choice:active {
-    transform: scale(0.96);
-    background: var(--light-purple);
-}
-.subject-stat-box {
-    margin-top: 6px;
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: 10px;
-    padding: 8px;
-    border: 1px dashed rgba(156, 39, 176, 0.15);
-}
-.subject-stat-title {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--purple);
-    margin-bottom: 4px;
-}
-.subject-stat-item {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #444;
-    padding: 2px 0;
-}
-.subject-stat-item span.badge {
-    background: var(--light-purple);
-    color: var(--purple);
-    padding: 1px 4px;
-    border-radius: 4px;
-    font-size: 9px;
-    font-weight: bold;
-}
-.history-modal-view {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(255,255,255,0.98);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    z-index: 3000;
-    flex-direction: column;
-    padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)) 20px;
-}
-.history-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-shrink: 0;
-}
-.history-modal-header h2 {
-    margin: 0;
-    font-size: 18px;
-    color: var(--purple);
-    font-weight: 800;
-}
-.btn-close-history {
-    background: var(--light-purple);
-    color: var(--purple);
-    border: none;
-    padding: 6px 14px;
-    border-radius: 14px;
-    font-size: 12px;
-    font-weight: bold;
-}
-.history-modal-content {
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 4px;
-}
-.history-modal-card {
-    background: rgba(156, 39, 176, 0.04);
-    border: 1px solid rgba(156, 39, 176, 0.08);
-    border-radius: 12px;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-.history-modal-date {
-    font-size: 12px;
-    font-weight: bold;
-    color: var(--purple);
-    margin-bottom: 4px;
-    display: flex;
-    justify-content: space-between;
-}
-.history-modal-text {
-    font-size: 12px;
-    color: #333;
-    line-height: 1.4;
-    white-space: pre-wrap;
-}
-.clickable-card {
-    cursor: pointer;
-    transition: transform 0.1s ease;
-}
-.clickable-card:active {
-    transform: scale(0.97);
-    background: rgba(255, 255, 255, 0.8);
-}
+
+        /* 科目统计专属组件 */
+        .subject-progress-container {
+            display: flex; flex-direction: column; gap: 5px; margin-top: 2px;
+        }
+        .subject-row {
+            display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: bold;
+        }
+        .subject-label { width: 50px; color: #444; }
+        .subject-track { flex: 1; background: rgba(0,0,0,0.06); height: 8px; border-radius: 4px; margin: 0 8px; overflow: hidden; position: relative; }
+        .subject-fill { height: 100%; border-radius: 4px; width: 0%; transition: width 0.4s ease; }
+        .subject-time-badge { width: 85px; text-align: right; color: var(--purple); font-size: 11px; }
+
+        /* 需求2：历史记录独立全屏新界面 */
+        .history-page-modal {
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: linear-gradient(135deg, #e8e0ff, #ffe2ec);
+            z-index: 3000;
+            flex-direction: column; 
+            padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom)) 20px;
+            overflow: hidden;
+        }
+        .history-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+        .history-page-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--purple);
+        }
+        .btn-close-history {
+            background: var(--purple);
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .history-page-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 15px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -353,20 +289,43 @@
 
     <div id="view-stats" class="tab-view">
         <div class="dashboard-grid">
-            <div class="stat-card">
+            <div class="stat-card" style="cursor: pointer;" onclick="toggleHistory()">
                 <div>☀️ 今日复习</div>
                 <div id="today-time">0分钟</div>
             </div>
-            <div class="stat-card clickable-card" onclick="showHistoryModal()">
-    <div>⏱️ 总累计 (点击查看历史)</div>
-    <div id="total-time">0分钟</div>
-</div>
+            <!-- 需求2：点击学习总长跳出全新历史独立展示界面，保持原页面格局不变 -->
+            <div class="stat-card" style="cursor: pointer;" onclick="openHistoryPage()">
+                <div>⏱️ 总累计</div>
+                <div id="total-time">0分钟</div>
+            </div>
         </div>
-<!-- 新增：今日不同科目数据统计看板 -->
-<div class="card-box" style="margin-bottom: 4px; padding: 8px 10px;">
-  <div class="section-title" style="margin-bottom: 2px;">📊 今日科目时长与有效时间</div>
-  <div id="subject-stat-container" class="subject-stat-box"></div>
-</div>
+
+        <!-- 科目时间占比看板 -->
+        <div class="card-box" style="margin-bottom: 4px; padding: 8px 10px;">
+            <div class="section-title">📊 今日科目时长占比看板</div>
+            <div class="subject-progress-container">
+                <div class="subject-row">
+                    <span class="subject-label">📐 数学</span>
+                    <div class="subject-track"><div id="bar-math" class="subject-fill" style="background:#2196f3;"></div></div>
+                    <span id="txt-math" class="subject-time-badge">0分钟 (0%)</span>
+                </div>
+                <div class="subject-row">
+                    <span class="subject-label">🔤 英语</span>
+                    <div class="subject-track"><div id="bar-english" class="subject-fill" style="background:#4caf50;"></div></div>
+                    <span id="txt-english" class="subject-time-badge">0分钟 (0%)</span>
+                </div>
+                <div class="subject-row">
+                    <span class="subject-label">🛡️ 专业课</span>
+                    <div class="subject-track"><div id="bar-major" class="subject-fill" style="background:#ff9800;"></div></div>
+                    <span id="txt-major" class="subject-time-badge">0分钟 (0%)</span>
+                </div>
+                <div class="subject-row">
+                    <span class="subject-label">🇨🇳 政治</span>
+                    <div class="subject-track"><div id="bar-politics" class="subject-fill" style="background:#e53935;"></div></div>
+                    <span id="txt-politics" class="subject-time-badge">0分钟 (0%)</span>
+                </div>
+            </div>
+        </div>
 
         <div class="dashboard-grid" style="margin-bottom: 4px;">
             <div class="stat-card" style="padding: 4px 10px;">
@@ -435,7 +394,7 @@
     <div id="reward-modal" class="reward-modal">
         <img src="https://i.postimg.cc/brL43YLs/naong_excited.png.png" alt="Excited Naong">
         <h2 style="color: var(--purple); margin: 0 0 8px 0; font-size: 22px; font-weight: 800;">任务达成！</h2>
-        <p id="modal-reward-msg" style="color: #444; font-size: 14px; margin: 0 0 25px 0; font-weight: 600; line-height: 1.4;"></p>
+        <p id="modal-reward-msg" style="color: #444; font-size: 14px; margin: 0 0 25px 0; font-weight: 600; line-height: 1.4; white-space: pre-wrap; text-align: left; width: 100%; max-width: 280px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 8px;"></p>
         <button onclick="closeRewardModal()" style="width: 60%; max-width: 200px; height: 44px; border-radius: 22px; border: none; background: var(--pink); color: white; font-size: 14px; font-weight: bold; box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);">领取奖励 🍦</button>
     </div>
 
@@ -458,6 +417,30 @@
         </div>
     </div>
 
+    <!-- 考研科目选择弹窗（点击模式选择后紧接着触发） -->
+    <div id="subject-modal" class="reward-modal">
+        <img src="https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg" alt="Naong Subject">
+        <div class="mode-panel">
+            <h2 style="color: var(--purple); margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">选择要复习的科目</h2>
+            <p style="color:#555; font-size:12px; margin:0 0 10px 0; font-weight:600; line-height:1.5;">此轮学习的时长将被精准计入该科目的统计图表中。</p>
+            <div class="mode-grid">
+                <button class="mode-choice" style="min-height:44px; border-left: 5px solid #2196f3;" onclick="selectSubjectAndStart('数学')">
+                    <strong>📐 数学</strong>
+                </button>
+                <button class="mode-choice" style="min-height:44px; border-left: 5px solid #4caf50;" onclick="selectSubjectAndStart('英语')">
+                    <strong>🔤 英语</strong>
+                </button>
+                <button class="mode-choice" style="min-height:44px; border-left: 5px solid #ff9800;" onclick="selectSubjectAndStart('专业课')">
+                    <strong>🛡️ 专业课</strong>
+                </button>
+                <button class="mode-choice" style="min-height:44px; border-left: 5px solid #e53935;" onclick="selectSubjectAndStart('政治')">
+                    <strong>🇨🇳 政治</strong>
+                </button>
+                <button class="btn-appeal-option" onclick="closeSubjectModal()">取消返回</button>
+            </div>
+        </div>
+    </div>
+
     <div id="screenoff-return-modal" class="reward-modal">
         <img src="https://i.postimg.cc/1XMbJRMX/naong_disappointed.png.jpg" alt="Naong Check">
         <h2 style="color: var(--purple); margin: 0 0 6px 0; font-size: 20px; font-weight: 800;">欢迎回来，来对账</h2>
@@ -476,6 +459,17 @@
             <button class="btn-appeal-option" onclick="resolveAppeal('water')">🚰 离座去接水/上洗手间了</button>
             <button class="btn-appeal-option" onclick="resolveAppeal('material')">📚 在用手机查复习资料</button>
             <button class="btn-appeal-option honest" onclick="resolveAppeal('phone')">📱 被抓包了，确实偷偷刷了手机</button>
+        </div>
+    </div>
+
+    <!-- 需求2：用于独立全屏展示历史每天学习时长记录的新界面（格局分离设计） -->
+    <div id="history-page-modal" class="history-page-modal">
+        <div class="history-page-header">
+            <div class="history-page-title">📅 历史学习档案簿</div>
+            <button class="btn-close-history" onclick="closeHistoryPage()">返回主页</button>
+        </div>
+        <div class="history-page-content">
+            <div id="history-page-list"></div>
         </div>
     </div>
 
@@ -559,8 +553,6 @@
             dailyForgivenCount: parseInt(localStorage.getItem('dailyForgivenCount')) || 0, 
 
             dailyLogs: {}, 
-            currentSubject: localStorage.getItem('currentSubject') || '',
-            todaySubjectsData: JSON.parse(localStorage.getItem('todaySubjectsData')) || { '数学': {total:0, effective:0}, '英语': {total:0, effective:0}, '专业课': {total:0, effective:0}, '政治': {total:0, effective:0} },
             countMilkTea: parseInt(localStorage.getItem('countMilkTea')) || 0,
             countChicken: parseInt(localStorage.getItem('countChicken')) || 0,
             countToy: parseInt(localStorage.getItem('countToy')) || 0,
@@ -585,16 +577,24 @@
             screenOffReturnCount: parseInt(localStorage.getItem('screenOffReturnCount')) || 0,
             lastTickTime: parseInt(localStorage.getItem('lastTickTime')) || 0,
             todayScreenOffRewardSeconds: parseFloat(localStorage.getItem('todayScreenOffRewardSeconds')) || 0,
-            behaviorBuffer: [] 
+            behaviorBuffer: [],
+
+            // 科目系统底层缓存
+            currentSubject: localStorage.getItem('currentSubject') || '',
+            todaySubjectsData: {},
+            historySubjectsData: {}
         };
 
         try { state.dailyLogs = JSON.parse(localStorage.getItem('dailyLogs')) || {}; } catch(e) { state.dailyLogs = {}; }
         try { state.behaviorBuffer = JSON.parse(localStorage.getItem('behaviorBuffer')) || []; } catch(e) { state.behaviorBuffer = []; }
+        try { state.todaySubjectsData = JSON.parse(localStorage.getItem('todaySubjectsData')) || { '数学': 0, '英语': 0, '专业课': 0, '政治': 0 }; } catch(e) { state.todaySubjectsData = { '数学': 0, '英语': 0, '专业课': 0, '政治': 0 }; }
+        try { state.historySubjectsData = JSON.parse(localStorage.getItem('historySubjectsData')) || {}; } catch(e) { state.historySubjectsData = {}; }
 
         let timerInterval = null, isRunning = false;
         let currentFocusDuration = 25; 
         let focusIntegrity = 100; 
         let pendingSettleData = null; 
+        let tempScreenOffEnabled = false; 
 
         function init() { 
             ensureSystemValid(); 
@@ -633,6 +633,11 @@
         function ensureSystemValid() {
             let today = getTodayStr();
             if (state.lastDate !== today) {
+                state.historySubjectsData[state.lastDate] = {
+                    totalMinutes: state.todayFocusMinutes,
+                    subjects: { ...state.todaySubjectsData }
+                };
+
                 state.todayFocusMinutes = 0;
                 state.todayBackgroundCount = 0;
                 state.todayBackgroundSeconds = 0;
@@ -645,8 +650,7 @@
                 state.behaviorBuffer = [];
                 state.leaveTime = 0;
                 state.returnTime = 0;
-                state.currentSubject = '';
-                state.todaySubjectsData = { '数学': {total:0, effective:0}, '英语': {total:0, effective:0}, '专业课': {total:0, effective:0}, '政治': {total:0, effective:0} };
+                state.todaySubjectsData = { '数学': 0, '英语': 0, '专业课': 0, '政治': 0 };
                 saveState();
                 return true;
             }
@@ -659,7 +663,7 @@
             document.querySelectorAll('.tab-item').forEach(item => item.classList.remove('active'));
             document.getElementById(tabId).classList.add('active'); 
             if(element) element.classList.add('active');
-            if (tabId === 'view-stats') { updateDiaryView(); }
+            if (tabId === 'view-stats') { updateDiaryView(); updateUI(); }
         }
 
         function renderPetState() {
@@ -675,16 +679,17 @@
             if (isRunning) {
                 let elapsedMs = state.currentStatus === 'Meditating' ? Date.now() - state.focusStartTime : getEffectiveFocusSeconds() * 1000;
                 let expectedMs = state.focusExpectedMinutes * 60 * 1000;
+                let subTag = state.currentSubject ? `【${state.currentSubject}】` : "";
                 
                 if (elapsedMs >= expectedMs) {
                     imgEl.src = "https://i.postimg.cc/brL43YLs/naong_excited.png.png";
-                    msgEl.innerText = "🎉 考研战神！你已经超越目标了！拿拿兴奋得想去考研大纲上跳芭蕾！🍦 正在疯狂翻倍中！";
+                    msgEl.innerText = `🎉 考研战神！你正在攻克${subTag}！已超越目标！拿拿兴奋得想去考研大纲上跳芭蕾！🍦 正在疯狂翻倍中！`;
                 } else if (elapsedMs < 2 * 60 * 1000) {
                     imgEl.src = "https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg";
-                    msgEl.innerText = "哈罗！又是元气满满的一节，拿拿把复习资料都准备好啦，前2分钟我们先轻松进入状态吧～";
+                    msgEl.innerText = `哈罗！又是元气满满的一节${subTag}，拿拿把复习资料都准备好啦，前2分钟我们先轻松进入状态吧～`;
                 } else {
                     imgEl.src = "https://i.postimg.cc/kGwLfMw4/naong_angry.png.jpg";
-                    msgEl.innerText = "嘘……（小声）拿拿进入认真陪读模式了，纸笔已备好，我们一起冲刺上岸！";
+                    msgEl.innerText = `嘘……（小声）拿拿正在全力监督你的${subTag}复习，纸笔已备好，我们一起冲刺上岸！`;
                 }
             } else {
                 if (state.currentStatus === 'Completed') {
@@ -718,6 +723,23 @@
             document.getElementById('review-status').innerText = todayNotes.trim() ? "已复盘" : "缺复盘";
             document.getElementById('review-status').style.color = todayNotes.trim() ? "#4caf50" : "#ff9800";
             
+            // 实时渲染四大科目今日时长与比例统计图
+            let totalMin = 0;
+            let subs = ['数学', '英语', '专业课', '政治'];
+            subs.forEach(sub => { totalMin += (state.todaySubjectsData[sub] || 0); });
+
+            let barIds = { '数学': 'bar-math', '英语': 'bar-english', '专业课': 'bar-major', '政治': 'bar-politics' };
+            let txtIds = { '数学': 'txt-math', '英语': 'txt-english', '专业课': 'txt-major', '政治': 'txt-politics' };
+            
+            subs.forEach(sub => {
+                let m = state.todaySubjectsData[sub] || 0;
+                let pct = totalMin > 0 ? Math.round((m / totalMin) * 100) : 0;
+                let barEl = document.getElementById(barIds[sub]);
+                let txtEl = document.getElementById(txtIds[sub]);
+                if (barEl) barEl.style.width = pct + "%";
+                if (txtEl) txtEl.innerText = `${Math.round(m)}分钟 (占比${pct}%)`;
+            });
+
             renderPetState();
 
             let sliderEl = document.getElementById('timer-slider');
@@ -783,9 +805,21 @@
             document.getElementById('focus-mode-modal').style.display = 'none';
         }
 
+        /* 需求1：选择专注模式后，紧接着唤起已有的科目选择器弹窗 */
         function beginFocusWithScreenOff(enabled) {
             document.getElementById('focus-mode-modal').style.display = 'none';
-            startFocus(enabled);
+            tempScreenOffEnabled = enabled;
+            document.getElementById('subject-modal').style.display = 'flex';
+        }
+
+        function closeSubjectModal() {
+            document.getElementById('subject-modal').style.display = 'none';
+        }
+
+        function selectSubjectAndStart(subjectName) {
+            state.currentSubject = subjectName;
+            document.getElementById('subject-modal').style.display = 'none';
+            startFocus(tempScreenOffEnabled);
         }
 
         function showScreenOffReturnModal(record) {
@@ -826,12 +860,13 @@
             state.focusSwitchCount = 0;
             state.screenOffReturnCount = 0;
             state.lastTickTime = Date.now();
-            state.screenOffMode = state.currentStatus !== 'Meditating' && !!screenOffEnabled;
             
-            state.focusStartTime = Date.now();
-            state.focusExpectedMinutes = currentFocusDuration;
             if(state.currentStatus !== 'Meditating') {
+                state.screenOffMode = !!screenOffEnabled;
                 state.currentStatus = 'Studying';
+            } else {
+                state.screenOffMode = false;
+                state.currentSubject = '面壁苦修';
             }
             
             document.getElementById('timer-text').classList.remove('overtime');
@@ -1021,7 +1056,6 @@
                 document.getElementById('appeal-msg').innerHTML = `拿拿发现你刚才离开了前台 <span style="color:var(--purple);font-weight:bold;">${timeText}</span>（5分钟内确认为分心动作，风险值: ${riskScore}）！<br>为了考研大局，请诚实对账：`;
                 document.getElementById('appeal-modal').style.display = 'flex';
             } else if (riskScore >= 7) {
-                // 如果是正常的锁屏（大于等于5分钟），这里不计入今日开小差统计数据
                 if (bgSec < 300) {
                     state.todayBackgroundCount++;
                     state.todayBackgroundSeconds += bgSec;
@@ -1051,6 +1085,7 @@
             saveState(); updateUI();
         }
 
+        /* 需求1：在结算弹窗中明确标注这段时间所学内容及科目 */
         function completeFocus() {
             recordForegroundTick();
             let effectiveSecondsForCheck = getEffectiveFocusSeconds();
@@ -1067,24 +1102,8 @@
             isRunning = false; 
             document.getElementById('cheat-indicator').style.display = 'none';
             document.getElementById('integrity-text').style.display = 'none';
-            let effMinutes = getEffectiveFocusSeconds() / 60;
-            let elapsedRealMinutes = (Date.now() - state.focusStartTime) / 60000;
-            if (state.currentSubject && state.todaySubjectsData[state.currentSubject]) {
-            state.todaySubjectsData[state.currentSubject].total += elapsedRealMinutes;
-            state.todaySubjectsData[state.currentSubject].effective += effMinutes;
-    }
+
             let totalElapsedSeconds = getEffectiveFocusSeconds();
-            
-            // 🔥【重大修复】在这里设置了智能过滤器：
-            // 只有单次小于 5 分钟 (300秒) 的隐藏才会累计作为“开小差分心时间”被扣除。
-            // 任何大于等于 300 秒的长效离线，均会被视作正常的“锁屏背诵/暗屏专注”，不会从实际坚守时间中扣掉！
-            let totalBgSecondsInSession = 0;
-            if (state.behaviorBuffer && state.behaviorBuffer.length > 0) {
-                totalBgSecondsInSession = state.behaviorBuffer.reduce((sum, item) => {
-                    return sum + (item.duration < 300 ? item.duration : 0);
-                }, 0);
-            }
-            
             let trueFocusedSeconds = Math.max(0, totalElapsedSeconds);
             let realElapsedMinutes = parseFloat((trueFocusedSeconds / 60).toFixed(2));
             
@@ -1107,19 +1126,25 @@
                 state.todayFocusMinutes += realElapsedMinutes;
                 state.totalFocusMinutes += realElapsedMinutes;
                 
+                // 将本次有效时间存入今日对应的具体科目中
+                if (state.currentSubject && state.todaySubjectsData[state.currentSubject] !== undefined) {
+                    state.todaySubjectsData[state.currentSubject] += realElapsedMinutes;
+                }
+
                 state.todayCompletedSessions++;
                 state.todayTotalIntegrity += focusIntegrity;
 
                 checkMilestone();
                 
+                // 体现结算时标注的学科和本轮记录
                 let settleLines = [
-                    `任务达成！`,
-                    `切屏次数：${state.focusSwitchCount || 0} 次`,
-                    `有效时间：${formatMinutesToHumanReadable(realElapsedMinutes)} / 目标 ${formatMinutesToHumanReadable(state.focusExpectedMinutes)}`,
-                    `完成比例：${Math.floor(completionRatio * 100)}%`,
-                    `折算明细：前台 ${formatSecondsToHumanReadable(state.foregroundFocusSeconds || 0)} x100%，标准熄屏 ${formatSecondsToHumanReadable(state.cleanScreenOffSeconds || 0)} x90%，中断熄屏 ${formatSecondsToHumanReadable(state.interruptedScreenOffSeconds || 0)} x80%`,
-                    `专注完整度：${focusIntegrity}%`,
-                    `本轮奖励：${finalEarned} 🍦`
+                    `🎉 任务达成！`,
+                    `📚 本轮复习科目：【${state.currentSubject || '自主选择'}】`,
+                    `⏱️ 设定目标：${formatMinutesToHumanReadable(state.focusExpectedMinutes)}`,
+                    `💪 有效时间：${formatMinutesToHumanReadable(realElapsedMinutes)} (${Math.floor(completionRatio * 100)}%)`,
+                    `📱 切屏离开：${state.focusSwitchCount || 0} 次`,
+                    `🎯 专注完整度评分：${focusIntegrity}%`,
+                    `📈 本轮资产奖励：+${finalEarned} 🍦`
                 ];
                 document.getElementById('modal-reward-msg').innerText = settleLines.join('\n');
                 document.getElementById('reward-modal').style.display = 'flex';
@@ -1139,6 +1164,7 @@
             document.getElementById('timer-slider').value = 25;
             document.getElementById('timer-text').innerText = `25:00`;
             currentFocusDuration = 25;
+            state.currentSubject = '';
             saveState(); updateUI();
         }
 
@@ -1160,12 +1186,6 @@
             state.lastTickTime = 0;
             clearInterval(timerInterval);
             isRunning = false; 
-            let effMinutes = getEffectiveFocusSeconds() / 60;
-            let elapsedRealMinutes = (Date.now() - state.focusStartTime) / 60000;
-            if (state.currentSubject && state.todaySubjectsData[state.currentSubject]) {
-            state.todaySubjectsData[state.currentSubject].total += elapsedRealMinutes;
-            state.todaySubjectsData[state.currentSubject].effective += effMinutes;
-
             document.getElementById('cheat-indicator').style.display = 'none';
             document.getElementById('integrity-text').style.display = 'none';
             
@@ -1202,22 +1222,124 @@
 
         function toggleHistory() {
             let diaryBox = document.getElementById('diary-whisper'); let historyBox = document.getElementById('history-box'); let btn = document.getElementById('toggle-history-btn');
-            if (historyBox.style.display === 'none') { historyBox.style.display = 'block'; diaryBox.style.display = 'none'; btn.innerText = '📖 切换观察日志'; renderHistory(); } 
-            else { historyBox.style.display = 'none'; diaryBox.style.display = 'block'; btn.innerText = '📅 切换历史档案'; }
+            if (historyBox.style.display === 'none') { 
+                switchTab('view-stats', document.querySelectorAll('.tab-item')[1]); 
+                historyBox.style.display = 'block'; 
+                diaryBox.style.display = 'none'; 
+                btn.innerText = '📖 切换观察日志'; 
+                renderHistory(); 
+            } else { 
+                historyBox.style.display = 'none'; 
+                diaryBox.style.display = 'block'; 
+                btn.innerText = '📅 切换历史档案'; 
+            }
         }
 
         function renderHistory() {
             let listEl = document.getElementById('history-list'); listEl.innerHTML = '';
-            let keys = Object.keys(state.dailyLogs).sort().reverse(); let today = getTodayStr(), count = 0;
+            let allDates = new Set([...Object.keys(state.dailyLogs), ...Object.keys(state.historySubjectsData)]);
+            let keys = Array.from(allDates).sort().reverse();
+            let today = getTodayStr(), count = 0;
+            
             keys.forEach(k => {
                 if (k === today) return;
-                if (state.dailyLogs[k] && state.dailyLogs[k].trim()) {
-                    count++; let item = document.createElement('div'); item.className = 'history-log-item';
-                    item.innerHTML = `<strong style="color:var(--purple);">${k}</strong>: <span style="white-space:pre-wrap;">${state.dailyLogs[k]}</span>`;
-                    listEl.appendChild(item);
+                let logText = state.dailyLogs[k] || '未填写今日复盘';
+                let subHtml = '';
+                
+                if (state.historySubjectsData[k] && state.historySubjectsData[k].subjects) {
+                    let hData = state.historySubjectsData[k];
+                    subHtml += `<div style="margin: 4px 0; color:#666; font-size:10px; background:rgba(0,0,0,0.03); padding:4px; border-radius:6px;">`;
+                    subHtml += `⏱️ 总复习: ${Math.round(hData.totalMinutes || 0)}分钟 | `;
+                    Object.keys(hData.subjects).forEach(sub => {
+                        if (hData.subjects[sub] > 0) {
+                            subHtml += `${sub}:${Math.round(hData.subjects[sub])}m `;
+                        }
+                    });
+                    subHtml += `</div>`;
                 }
+                
+                count++; 
+                let item = document.createElement('div'); 
+                item.className = 'history-log-item';
+                item.innerHTML = `
+                    <strong style="color:var(--purple); font-size:12px;">📅 ${k}</strong>
+                    ${subHtml}
+                    <div style="white-space:pre-wrap; color:#333; margin-top:2px; padding-left:4px;">📝 ${logText}</div>
+                `;
+                listEl.appendChild(item);
             });
             if (count === 0) listEl.innerHTML = '<div style="color:#888; text-align:center; padding:5px;">暂无历史复盘。</div>';
+        }
+
+        /* 需求2：控制独立全屏历史界面的打开、关闭与详细数据动态渲染 */
+        function openHistoryPage() {
+            document.getElementById('history-page-modal').style.display = 'flex';
+            renderHistoryPageList();
+        }
+
+        function closeHistoryPage() {
+            document.getElementById('history-page-modal').style.display = 'none';
+        }
+
+        function renderHistoryPageList() {
+            let listEl = document.getElementById('history-page-list');
+            listEl.innerHTML = '';
+            
+            let allDates = new Set([...Object.keys(state.dailyLogs), ...Object.keys(state.historySubjectsData)]);
+            let keys = Array.from(allDates).sort().reverse();
+            let today = getTodayStr();
+            let count = 0;
+            
+            keys.forEach(k => {
+                let isToday = (k === today);
+                let logText = state.dailyLogs[k] || '未填写复盘总结';
+                let subHtml = '';
+                let totalMin = 0;
+                let subjectsMap = null;
+                
+                if (isToday) {
+                    subjectsMap = state.todaySubjectsData;
+                    totalMin = state.todayFocusMinutes;
+                } else if (state.historySubjectsData[k]) {
+                    subjectsMap = state.historySubjectsData[k].subjects;
+                    totalMin = state.historySubjectsData[k].totalMinutes;
+                }
+                
+                if (subjectsMap) {
+                    subHtml += `<div style="margin: 6px 0; color:#555; font-size:11px; background:rgba(156,39,176,0.05); padding:6px; border-radius:8px; border-left: 3px solid var(--purple);">`;
+                    subHtml += `<strong>⏱️ 有效总时长:</strong> ${Math.round(totalMin || 0)} 分钟<br style="margin-bottom:2px;">`;
+                    
+                    let subDetails = [];
+                    Object.keys(subjectsMap).forEach(sub => {
+                        let subMin = subjectsMap[sub] || 0;
+                        if (subMin > 0) {
+                            let subPct = totalMin > 0 ? Math.round((subMin / totalMin) * 100) : 0;
+                            subDetails.push(`${sub}: ${Math.round(subMin)}分钟 (${subPct}%)`);
+                        }
+                    });
+                    
+                    subHtml += subDetails.length > 0 ? subDetails.join(' | ') : '暂无科目专注明细';
+                    subHtml += `</div>`;
+                }
+                
+                count++; 
+                let item = document.createElement('div'); 
+                item.className = 'history-log-item';
+                item.style.marginBottom = '12px';
+                item.style.paddingBottom = '8px';
+                item.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="color:var(--purple); font-size:13px;">📅 ${k} ${isToday ? '<span style="color:var(--pink); font-size:10px;">(今日暂存)</span>' : ''}</strong>
+                    </div>
+                    ${subHtml}
+                    <div style="white-space:pre-wrap; color:#333; margin-top:4px; font-size:11px; background:#fff; padding:6px; border-radius:6px; border:1px solid rgba(0,0,0,0.02)">📝 日志复盘：${logText}</div>
+                `;
+                listEl.appendChild(item);
+            });
+            
+            if (count === 0) {
+                listEl.innerHTML = '<div style="color:#888; text-align:center; padding:20px; font-size:13px;">🐾 档案库空空如也，快去开启专注吧！</div>';
+            }
         }
 
         function updateDiaryView() {
@@ -1237,68 +1359,6 @@
         }
 
         window.onload = init;
-        <!-- 新增：科目分类选择弹窗 -->
-<div id="subject-select-modal" class="reward-modal">
-  <img src="https://i.postimg.cc/brqKxS0k/naong-calm.png.jpg" alt="Naong Choice">
-  <div class="mode-panel">
-    <h2 style="color: var(--purple); margin: 0 0 4px 0; font-size: 20px; font-weight: 800;">请选择本次学习科目</h2>
-    <p style="color:#555; font-size:12px; margin:0; font-weight:600;">让拿拿帮你精准记录每一门课的努力吧！</p>
-    <div class="subject-grid">
-      <button class="subject-choice" onclick="selectSubject('数学')">📐 数学</button>
-      <button class="subject-choice" onclick="selectSubject('英语')">🔤 英语</button>
-      <button class="subject-choice" onclick="selectSubject('专业课')">📑 专业课</button>
-      <button class="subject-choice" onclick="selectSubject('政治')">🇨🇳 政治</button>
-    </div>
-    <button class="btn-appeal-option" style="margin-top: 12px;" onclick="closeSubjectModal()">返回选择模式</button>
-  </div>
-</div>
-<!-- 新增：过去每天学习时长记录的独立全屏新界面 -->
-<div id="history-view-modal" class="history-modal-view">
-  <div class="history-modal-header">
-    <h2>📅 历史自习总账本</h2>
-    <button class="btn-close-history" onclick="closeHistoryModal()">返回主页</button>
-  </div>
-  <div id="history-modal-list" class="history-modal-content"></div>
-</div>
-function closeSubjectModal() {
-    document.getElementById('subject-select-modal').style.display = 'none';
-    document.getElementById('focus-mode-modal').style.display = 'flex';
-}
-
-function selectSubject(subjName) {
-    state.currentSubject = subjName;
-    document.getElementById('subject-select-modal').style.display = 'none';
-    startFocus(tempScreenOffMode);
-}
-
-function showHistoryModal() {
-    let listEl = document.getElementById('history-modal-list');
-    listEl.innerHTML = '';
-    let dates = Object.keys(state.dailyLogs).sort((a, b) => new Date(b) - new Date(a));
-    if (dates.length === 0) {
-        listEl.innerHTML = '<div style="color:#777; text-align:center; padding-top:40px; font-size:13px;">尚无历史专注档案，快去开启你的第一节自习吧！</div>';
-    } else {
-        dates.forEach(dt => {
-            let logText = state.dailyLogs[dt] || '这天没有留下复盘日志信息。';
-            let card = document.createElement('div');
-            card.className = 'history-modal-card';
-            card.innerHTML = `
-                <div class="history-modal-date">
-                    <span>📅 日期：${dt}</span>
-                    <span style="color:var(--pink);">已记录</span>
-                </div>
-                <div class="history-modal-text">${logText}</div>
-            `;
-            listEl.appendChild(card);
-        });
-    }
-    document.getElementById('history-view-modal').style.display = 'flex';
-}
-
-function closeHistoryModal() {
-    document.getElementById('history-view-modal').style.display = 'none';
-}
-
     </script>
 </body>
 </html>
