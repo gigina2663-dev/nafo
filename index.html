@@ -846,6 +846,7 @@
         }
 
         function startFocus(screenOffEnabled = false) {
+            state.focusExpectedMinutes = currentFocusDuration;
             ensureSystemValid(); 
             isRunning = true; 
             focusIntegrity = 100;
