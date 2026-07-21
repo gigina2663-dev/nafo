@@ -406,7 +406,7 @@
             <div class="mode-grid">
                 <button class="mode-choice primary" onclick="beginFocusWithScreenOff(true)">
                     <strong>🌙 熄屏学习模式</strong>
-                    <span>前台 100%，标准熄屏 90%，中断后熄屏 80%，单次最多 90 分钟。</span>
+                    <span>前台 100%，标准熄屏 90%，中断后熄屏 80%，单次最多 120 分钟。</span>
                 </button>
                 <button class="mode-choice" onclick="beginFocusWithScreenOff(false)">
                     <strong>📖 前台陪读模式</strong>
@@ -951,8 +951,8 @@
                 let creditRate = 0;
                 let recordType = 'background';
                 if (state.screenOffMode) {
-                    let singleCap = 90 * 60;
-                    let dailyCap = 240 * 60;
+                    let singleCap = 9999 * 60;
+                    let dailyCap = 9999 * 60;
                     let cappedSeconds = Math.min(backgroundSeconds, singleCap);
                     let dailyLeft = Math.max(0, dailyCap - (state.todayScreenOffRewardSeconds || 0));
                     let rewardableSeconds = Math.min(cappedSeconds, dailyLeft);
