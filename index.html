@@ -823,23 +823,23 @@
         }
 
         function showScreenOffReturnModal(record) {
-            let rateText = record.rate > 0 ? `${Math.round(record.rate * 100)}%` : "0%";
-            let effectiveSeconds = record.creditedSeconds * record.rate;
-            let typeText = record.type === 'screenOffClean' ? "标准熄屏学习" :
-                record.type === 'screenOffInterrupted' ? "中断后熄屏学习" : "普通切屏离开";
-            let summary = [
-                `离开时长：${formatSecondsToHumanReadable(record.duration)}`,
-                `记录类型：${typeText}`,
-                `折算比例：${rateText}`,
-                `本次有效：${formatSecondsToHumanReadable(effectiveSeconds)}`,
-                `本轮切屏：${state.focusSwitchCount || 0} 次`
-            ];
-            if (record.type === 'background') {
-                summary.splice(3, 1, `本次有效：0分钟（未开启熄屏学习）`);
-            }
-            document.getElementById('screenoff-return-summary').innerText = summary.join('\n');
-            document.getElementById('screenoff-return-modal').style.display = 'flex';
-        }
+        let rateText = record.rate > 0 ? `${Math.round(record.rate * 100)}%` : "0%";
+        let effectiveSeconds = (record.duration || 0) * (record.rate || 0);
+        let typeText = record.type === 'screenOffClean' ? "标准熄屏学习" :
+        record.type === 'screenOffInterrupted' ? "中断后熄屏学习" : "普通切屏离开";
+        let summary = [
+        `离开时长：${formatSecondsToHumanReadable(record.duration)}`,
+        `记录类型：${typeText}`,
+        `折算比例：${rateText}`,
+        `本次有效：${formatSecondsToHumanReadable(effectiveSeconds)}`,
+        `本轮切屏：${state.focusSwitchCount || 0} 次`
+         ];
+         if (record.type === 'background') {
+         summary.splice(3, 1, `本次有效：0分钟（未开启熄屏学习）`);
+         }
+         document.getElementById('screenoff-return-summary').innerText = summary.join('\n');
+         document.getElementById('screenoff-return-modal').style.display = 'flex';
+         }
 
         function closeScreenOffReturnModal() {
             document.getElementById('screenoff-return-modal').style.display = 'none';
