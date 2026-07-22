@@ -1089,6 +1089,22 @@
         /* 需求1：在结算弹窗中明确标注这段时间所学内容及科目 */
         function completeFocus() {
             recordForegroundTick();
+                // ⛔ 【严格模式】切屏次数超过 3 次直接判定无效
+            if (state.focusSwitchCount > 3) {
+            alert(`❌ 本轮专注无效！\n\n你中途切屏/离开页面达到了 ${state.focusSwitchCount} 次（严格上限为 3 次）。\n本次专注不计入时长，拿拿提醒你要保持专注哦！`);
+        
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('cheat-indicator').style.display = 'none';
+            document.getElementById('integrity-text').style.display = 'none';
+        
+            state.iceCreams = Math.max(0, state.iceCreams - 2.0);
+        
+            saveState();   // 💾 保存最新状态（保存扣除后的冰激凌数）
+            resetToIdleState(); // 🔄 复位界面，让你能重新开始
+            updateUI();    // 🎨 刷新UI界面
+            return;
+            }
             let effectiveSecondsForCheck = getEffectiveFocusSeconds();
             let expectedSecondsForCheck = state.focusExpectedMinutes * 60;
             if (state.currentStatus !== 'Meditating' && !state.isLocked && effectiveSecondsForCheck < expectedSecondsForCheck) {
