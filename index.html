@@ -823,6 +823,26 @@
         }
 
         function showScreenOffReturnModal(record) {
+                // ⛔ 【严格模式】切屏超过3次，切回页面时直接强行作废并重置
+        if (state.focusSwitchCount > 3) {
+            alert(`❌ 本轮专注已作废！\n\n你切屏/离开页面已达 ${state.focusSwitchCount} 次（超过 3 次上限）。\n本轮专注将被强行重置，拿拿提醒你要保持专注哦！`);
+        
+            clearInterval(timerInterval);
+            isRunning = false;
+        
+            let cheatInd = document.getElementById('cheat-indicator');
+            if (cheatInd) cheatInd.style.display = 'none';
+            let integText = document.getElementById('integrity-text');
+            if (integText) integText.style.display = 'none';
+        
+            state.iceCreams = Math.max(0, state.iceCreams - 2.0);
+        
+            saveState();
+            resetToIdleState();
+            updateUI();
+            return; // 直接返回，不再弹窗也不走后面的对账逻辑
+        }
+
         let rateText = record.rate > 0 ? `${Math.round(record.rate * 100)}%` : "0%";
         let effectiveSeconds = (record.duration || 0) * (record.rate || 0);
         let typeText = record.type === 'screenOffClean' ? "标准熄屏学习" :
